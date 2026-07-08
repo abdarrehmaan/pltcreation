@@ -1,0 +1,46 @@
+'use client';
+import React from 'react';
+import { usePathname } from 'next/navigation';
+import { Bell, Search } from 'lucide-react';
+
+const pageTitles: Record<string, string> = {
+  '/admin': 'Dashboard',
+  '/admin/analytics': 'Analytics',
+  '/admin/products': 'Products',
+  '/admin/categories': 'Categories',
+  '/admin/collections': 'Collections',
+  '/admin/orders': 'Orders',
+  '/admin/customers': 'Customers',
+  '/admin/offers': 'Offers',
+  '/admin/coupons': 'Coupons',
+  '/admin/reviews': 'Reviews',
+  '/admin/returns': 'Returns',
+  '/admin/settings': 'Settings',
+};
+
+export default function AdminHeader() {
+  const pathname = usePathname();
+  const title = pageTitles[pathname] || 'Admin';
+
+  return (
+    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
+      <div>
+        <h1 className="font-semibold text-gray-900">{title}</h1>
+        <p className="text-xs text-gray-400">PLT Creation Admin Dashboard</p>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="relative hidden md:block">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input type="text" placeholder="Search..." className="pl-9 pr-4 py-2 rounded-xl bg-gray-100 text-sm border-none focus:outline-none focus:ring-2 focus:ring-brand-200 w-52" />
+        </div>
+        <button className="relative btn-icon" aria-label="Notifications">
+          <Bell size={18} className="text-gray-600" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500" />
+        </button>
+        <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm text-white" style={{ background: 'linear-gradient(135deg, #6B2D4F, #C4748A)' }}>
+          A
+        </div>
+      </div>
+    </header>
+  );
+}
