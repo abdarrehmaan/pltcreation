@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { Phone, Mail, MapPin, Clock, MessageSquare } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock } from 'lucide-react';
+import ContactForm from '@/components/storefront/ContactForm';
 
 export const metadata: Metadata = {
   title: 'Contact Us',
@@ -41,40 +42,7 @@ export default function ContactPage() {
           </div>
 
           {/* Contact form */}
-          <div className="bg-ivory-100 rounded-3xl p-8">
-            <h2 className="font-display text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <MessageSquare size={22} className="text-brand-600" /> Send a Message
-            </h2>
-            <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Name</label>
-                  <input type="text" placeholder="Your name" required className="input-base" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Email</label>
-                  <input type="email" placeholder="Your email" required className="input-base" />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Subject</label>
-                <select className="input-base">
-                  <option>Order Query</option>
-                  <option>Return Request</option>
-                  <option>Product Inquiry</option>
-                  <option>Payment Issue</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Message</label>
-                <textarea rows={5} placeholder="Describe your query in detail..." required className="input-base resize-none" />
-              </div>
-              <button type="submit" id="contact-submit" className="btn-primary w-full py-3.5">
-                Send Message
-              </button>
-            </form>
-          </div>
+          <ContactForm />
         </div>
       </div>
     </div>
