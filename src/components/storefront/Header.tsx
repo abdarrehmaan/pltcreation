@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useCartStore } from '@/features/cart/store';
 import { useWishlistStore } from '@/features/wishlist/store';
+import { useAuthStore } from '@/features/auth/store';
 import { cn, formatPrice } from '@/lib/utils';
 import { mockProducts } from '@/lib/mock-data';
 
@@ -46,6 +47,7 @@ export default function Header() {
   const cartCount = useCartStore((s) => s.getItemCount());
   const wishlistCount = useWishlistStore((s) => s.items.length);
   const openCart = useCartStore((s) => s.openCart);
+  const user = useAuthStore((s) => s.user);
 
   const [mounted, setMounted] = useState(false);
 
@@ -280,14 +282,25 @@ export default function Header() {
               </div>
 
               {/* Account */}
-              <Link
-                href="/account"
-                id="account-btn"
-                className="w-10 h-10 rounded-full items-center justify-center text-white/90 hover:bg-white/10 hover:text-white transition-colors hidden sm:flex"
-                aria-label="Account"
-              >
-                <User size={20} strokeWidth={2.5} />
-              </Link>
+              {mounted && user ? (
+                <Link
+                  href="/account"
+                  id="account-btn"
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm bg-brand-600 hover:bg-brand-700 transition-colors border border-white/20"
+                  aria-label="Account"
+                >
+                  {user.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2) : 'U'}
+                </Link>
+              ) : (
+                <Link
+                  href="/account"
+                  id="account-btn"
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white/90 hover:bg-white/10 hover:text-white transition-colors hidden sm:flex"
+                  aria-label="Account"
+                >
+                  <User size={20} strokeWidth={2.5} />
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -424,13 +437,33 @@ export default function Header() {
             </nav>
 
             <div className="p-6 bg-gray-50 border-t border-gray-100 space-y-4">
-              <Link
-                href="/account"
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-white shadow-sm text-gray-900 hover:shadow-md transition-shadow"
-              >
-                <User size={18} className="text-brand-600" />
-                Sign In / Register
-              </Link>
+              {mounted && user ? (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3 px-4 py-2">
+                    <div className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                      {user.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2) : 'U'}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-gray-900 truncate">{user.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </div>
+                  </div>
+                  <Link
+                    href="/account"
+                    className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl text-sm font-bold bg-white shadow-sm text-gray-900 hover:shadow-md transition-shadow border border-gray-100"
+                  >
+                    Go to Dashboard
+                  </Link>
+                </div>
+              ) : (
+                <Link
+                  href="/account"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold bg-white shadow-sm text-gray-900 hover:shadow-md transition-shadow"
+                >
+                  <User size={18} className="text-brand-600" />
+                  Sign In / Register
+                </Link>
+              )}
               <div className="text-xs text-gray-500 font-medium pt-2">
                 <p className="flex items-center gap-2 mb-2"><Phone size={14} className="text-brand-500" /> +91 98765 43210</p>
                 <p className="flex items-center gap-2"><Mail size={14} className="text-brand-500" /> concierge@pltcreation.in</p>

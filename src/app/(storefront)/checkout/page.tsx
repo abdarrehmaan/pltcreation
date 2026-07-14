@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronRight, Shield, Truck, CreditCard, Smartphone, Building2, Store, RefreshCcw } from 'lucide-react';
 import { useCartStore } from '@/features/cart/store';
+import { useAuthStore } from '@/features/auth/store';
 import { formatPrice, calculateShipping } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
@@ -31,12 +32,24 @@ export default function CheckoutPage() {
   const shipping = calculateShipping(subtotal - couponDiscount);
   const total = subtotal - couponDiscount + shipping;
 
+  const user = useAuthStore((s) => s.user);
   const [paymentMethod, setPaymentMethod] = useState('upi');
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     fullName: '', phone: '', email: '', line1: '', line2: '',
     city: '', state: '', pincode: '',
   });
+
+  useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        ...prev,
+        fullName: prev.fullName || user.name || '',
+        email: prev.email || user.email || '',
+        phone: prev.phone || user.phone || '',
+      }));
+    }
+  }, [user]);
 
   const prepaidDiscount = !['cod', 'takeaway', 'exchange'].includes(paymentMethod) ? Math.round(total * 0.05) : 0;
   const finalTotal = total - prepaidDiscount;

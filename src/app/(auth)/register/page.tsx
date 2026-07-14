@@ -1,22 +1,40 @@
 'use client';
+
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, ArrowRight, CheckCircle } from 'lucide-react';
+import { useAuthStore } from '@/features/auth/store';
+import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const register = useAuthStore((state) => state.register);
+
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
 
+  const isButtonDisabled = !form.name || !form.email || !form.password || loading;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isButtonDisabled) return;
+
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1200));
+    const result = await register(form.name, form.email, form.phone, form.password);
     setLoading(false);
+
+    if (result.success) {
+      toast.success('Account created successfully! Please log in.');
+      router.push('/login');
+    } else {
+      toast.error(result.error || 'Registration failed. Please try again.');
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+    setForm((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   return (
     <div className="min-h-screen flex">
@@ -30,22 +48,22 @@ export default function RegisterPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Full Name</label>
-              <input id="reg-name" name="name" type="text" required value={form.name} onChange={handleChange} placeholder="Your full name" className="input-base" />
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Full Name *</label>
+              <input id="reg-name" name="name" type="text" required value={form.name} onChange={handleChange} placeholder="Your full name" className="input-base bg-blue-50/20 focus:bg-white" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Email Address</label>
-              <input id="reg-email" name="email" type="email" required value={form.email} onChange={handleChange} placeholder="you@example.com" className="input-base" />
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Email Address *</label>
+              <input id="reg-email" name="email" type="email" required value={form.email} onChange={handleChange} placeholder="you@example.com" className="input-base bg-blue-50/20 focus:bg-white" />
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Phone Number</label>
-              <input id="reg-phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="10-digit mobile number" className="input-base" />
+              <input id="reg-phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="10-digit mobile number" className="input-base bg-blue-50/20 focus:bg-white" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Password</label>
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Password *</label>
               <div className="relative">
-                <input id="reg-password" name="password" type={showPw ? 'text' : 'password'} required minLength={8} value={form.password} onChange={handleChange} placeholder="Minimum 8 characters" className="input-base pr-12" />
-                <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" onClick={() => setShowPw(!showPw)}>
+                <input id="reg-password" name="password" type={showPw ? 'text' : 'password'} required minLength={8} value={form.password} onChange={handleChange} placeholder="Minimum 8 characters" className="input-base pr-12 bg-blue-50/20 focus:bg-white" />
+                <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 focus:outline-none" onClick={() => setShowPw(!showPw)}>
                   {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
@@ -54,7 +72,7 @@ export default function RegisterPage() {
             <div className="p-3 bg-emerald-50 rounded-xl">
               <p className="text-xs text-emerald-700 font-semibold mb-2">🎁 New member benefits:</p>
               <ul className="space-y-1">
-                {['10% off your first order', 'Early access to new arrivals', 'Exclusive member-only deals', 'Easy order tracking'].map(b => (
+                {['10% off your first order', 'Early access to new arrivals', 'Exclusive member-only deals', 'Easy order tracking'].map((b) => (
                   <li key={b} className="flex items-center gap-2 text-xs text-emerald-600">
                     <CheckCircle size={12} /> {b}
                   </li>
@@ -65,8 +83,12 @@ export default function RegisterPage() {
             <button
               id="register-submit"
               type="submit"
-              disabled={loading}
-              className="btn-primary w-full py-3.5 justify-center disabled:opacity-60"
+              disabled={isButtonDisabled}
+              className={`w-full py-3.5 flex items-center justify-center text-white font-bold rounded-full transition-all duration-200 focus:outline-none ${
+                isButtonDisabled
+                  ? 'bg-[#8c9ab0] cursor-not-allowed'
+                  : 'bg-[#143596] hover:bg-[#0e2a7b] active:bg-[#0b205d] shadow-md cursor-pointer'
+              }`}
             >
               {loading ? 'Creating account...' : 'Create Account'} {!loading && <ArrowRight size={16} />}
             </button>
