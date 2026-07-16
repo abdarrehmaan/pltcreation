@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { usePathname } from 'next/navigation';
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, LogOut } from 'lucide-react';
 
 const pageTitles: Record<string, string> = {
   '/admin': 'Dashboard',
@@ -22,6 +22,11 @@ export default function AdminHeader() {
   const pathname = usePathname();
   const title = pageTitles[pathname] || 'Admin';
 
+  const handleLogout = () => {
+    sessionStorage.removeItem('admin_authenticated');
+    window.location.reload();
+  };
+
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
       <div>
@@ -36,6 +41,13 @@ export default function AdminHeader() {
         <button className="relative btn-icon" aria-label="Notifications">
           <Bell size={18} className="text-gray-600" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500" />
+        </button>
+        <button
+          onClick={handleLogout}
+          className="btn-icon text-red-500 hover:bg-red-50"
+          title="Log Out of Admin Panel"
+        >
+          <LogOut size={18} />
         </button>
         <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm text-white" style={{ background: 'linear-gradient(135deg, #6B2D4F, #C4748A)' }}>
           A
