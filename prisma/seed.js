@@ -8,52 +8,46 @@ async function main() {
   const adapter = new PrismaPg(pool);
   const prisma = new PrismaClient({ adapter });
 
-  console.log('Seeding database...');
+  console.log('Upserting seed database records safely (preserving orders)...');
 
   try {
-    // 1. Clear existing products, variants, images, categories
-    await prisma.productVariant.deleteMany();
-    await prisma.productImage.deleteMany();
-    await prisma.collectionProduct.deleteMany();
-    await prisma.product.deleteMany();
-    await prisma.category.deleteMany();
-    await prisma.collection.deleteMany();
-
-    console.log('Cleared existing data.');
-
-    // 2. Seed Categories
+    // 1. Seed Categories
     const categoriesData = [
-      { name: 'Chikankari', slug: 'chikankari', description: 'Handcrafted Chikankari work on premium fabrics' },
-      { name: 'Co-ord Sets', slug: 'coord-sets', description: 'Elegant matching top and bottom sets' },
-      { name: 'Kurtis', slug: 'kurtis', description: 'Casual and festive ethnic kurtis' },
-      { name: 'Stitched Suits', slug: 'stitched-suits', description: 'Fully stitched premium salwar suit sets' },
-      { name: 'Unstitched Suits', slug: 'unstitched-suits', description: 'Unstitched suit materials for custom fitting' },
+      { name: 'Chikankari', slug: 'chikankari', description: 'Handcrafted Chikankari work on premium fabrics', image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80' },
+      { name: 'Co-ord Sets', slug: 'coord-sets', description: 'Elegant matching top and bottom sets', image: 'https://images.unsplash.com/photo-1608748010899-18f300247112?w=600&auto=format&fit=crop&q=80' },
+      { name: 'Kurtis', slug: 'kurtis', description: 'Casual and festive ethnic kurtis', image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=600&auto=format&fit=crop&q=80' },
+      { name: 'Stitched Suits', slug: 'stitched-suits', description: 'Fully stitched premium salwar suit sets', image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&auto=format&fit=crop&q=80' },
+      { name: 'Unstitched Suits', slug: 'unstitched-suits', description: 'Unstitched suit materials for custom fitting', image: 'https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=600&auto=format&fit=crop&q=80' },
     ];
 
     const categories = {};
     for (const cat of categoriesData) {
-      const created = await prisma.category.create({
-        data: cat,
+      const created = await prisma.category.upsert({
+        where: { slug: cat.slug },
+        update: cat,
+        create: cat,
       });
       categories[created.name] = created.id;
     }
-    console.log('Seeded categories.');
+    console.log('Upserted categories.');
 
-    // 3. Seed Collections
+    // 2. Seed Collections
     const collectionsData = [
-      { name: 'Eid Festive Edit', slug: 'eid-festive', description: 'Celebrate the most beautiful festival with our handpicked Eid collection', bannerImage: 'https://picsum.photos/seed/eid-festive/1200/800' },
-      { name: 'Monsoon Freshness', slug: 'monsoon', description: 'Light, breathable fabrics perfect for the rainy season', bannerImage: 'https://picsum.photos/seed/monsoon/1200/800' },
-      { name: 'Wedding Season', slug: 'wedding', description: 'Be the most elegant guest at every wedding this season', bannerImage: 'https://picsum.photos/seed/wedding/1200/800' },
+      { name: 'Eid Festive Edit', slug: 'eid-festive', description: 'Celebrate the most beautiful festival with our handpicked Eid collection', bannerImage: 'https://images.unsplash.com/photo-1596783074918-c84cb06531ca?w=1200&auto=format&fit=crop&q=80' },
+      { name: 'Monsoon Freshness', slug: 'monsoon', description: 'Light, breathable fabrics perfect for the rainy season', bannerImage: 'https://images.unsplash.com/photo-1561414927-6d86591d0c4f?w=1200&auto=format&fit=crop&q=80' },
+      { name: 'Wedding Season', slug: 'wedding', description: 'Be the most elegant guest at every wedding this season', bannerImage: 'https://images.unsplash.com/photo-1583391265517-35bbdad01209?w=1200&auto=format&fit=crop&q=80' },
     ];
 
     for (const col of collectionsData) {
-      await prisma.collection.create({
-        data: col,
+      await prisma.collection.upsert({
+        where: { slug: col.slug },
+        update: col,
+        create: col,
       });
     }
-    console.log('Seeded collections.');
+    console.log('Upserted collections.');
 
-    // 4. Seed Products
+    // 3. Seed Products
     const mockProducts = [
       {
         id: 'p1',
@@ -69,8 +63,8 @@ async function main() {
         isTrending: true,
         categoryName: 'Chikankari',
         images: [
-          { url: 'https://picsum.photos/seed/chikankari1/600/800', alt: 'Ivory Chikankari Kurta' },
-          { url: 'https://picsum.photos/seed/chikankari2/600/800', alt: 'Ivory Chikankari Kurta Back' },
+          { url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80', alt: 'Ivory Chikankari Kurta' },
+          { url: 'https://images.unsplash.com/photo-1610030469668-93535c17b6b3?w=600&auto=format&fit=crop&q=80', alt: 'Ivory Chikankari Kurta Back' },
         ],
         variants: [
           { size: 'XS', color: 'Ivory', colorHex: '#F5F0E8', stock: 2 },
@@ -94,7 +88,7 @@ async function main() {
         isTrending: true,
         categoryName: 'Co-ord Sets',
         images: [
-          { url: 'https://picsum.photos/seed/coord1/600/800', alt: 'Rose Gold Co-ord Set' },
+          { url: 'https://images.unsplash.com/photo-1608748010899-18f300247112?w=600&auto=format&fit=crop&q=80', alt: 'Rose Gold Co-ord Set' },
         ],
         variants: [
           { size: 'S', color: 'Rose Gold', colorHex: '#C4748A', stock: 2 },
@@ -116,7 +110,7 @@ async function main() {
         isTrending: true,
         categoryName: 'Kurtis',
         images: [
-          { url: 'https://picsum.photos/seed/kurti1/600/800', alt: 'Floral Kurti' },
+          { url: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=600&auto=format&fit=crop&q=80', alt: 'Floral Kurti' },
         ],
         variants: [
           { size: 'XS', color: 'Peach', colorHex: '#FFCBA4', stock: 8 },
@@ -141,7 +135,7 @@ async function main() {
         isTrending: false,
         categoryName: 'Stitched Suits',
         images: [
-          { url: 'https://picsum.photos/seed/anarkali1/600/800', alt: 'Anarkali Suit' },
+          { url: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&auto=format&fit=crop&q=80', alt: 'Anarkali Suit' },
         ],
         variants: [
           { size: 'S', color: 'Burgundy', colorHex: '#800020', stock: 1 },
@@ -163,7 +157,7 @@ async function main() {
         isTrending: true,
         categoryName: 'Unstitched Suits',
         images: [
-          { url: 'https://picsum.photos/seed/georgette1/600/800', alt: 'Georgette Suit' },
+          { url: 'https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=600&auto=format&fit=crop&q=80', alt: 'Georgette Suit' },
         ],
         variants: [
           { size: 'Free Size', color: 'Teal', colorHex: '#008080', stock: 10 },
@@ -185,7 +179,7 @@ async function main() {
         isTrending: false,
         categoryName: 'Chikankari',
         images: [
-          { url: 'https://picsum.photos/seed/silk1/600/800', alt: 'Silk Chikankari' },
+          { url: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&auto=format&fit=crop&q=80', alt: 'Silk Chikankari' },
         ],
         variants: [
           { size: 'S', color: 'Pastel Pink', colorHex: '#FFB7C5', stock: 1 },
@@ -207,7 +201,7 @@ async function main() {
         isTrending: true,
         categoryName: 'Kurtis',
         images: [
-          { url: 'https://picsum.photos/seed/palazzo1/600/800', alt: 'Palazzo Kurti' },
+          { url: 'https://images.unsplash.com/photo-1611601679655-7c8bc197f0c6?w=600&auto=format&fit=crop&q=80', alt: 'Palazzo Kurti' },
         ],
         variants: [
           { size: 'S', color: 'Yellow', colorHex: '#FFD700', stock: 5 },
@@ -230,7 +224,7 @@ async function main() {
         isTrending: true,
         categoryName: 'Co-ord Sets',
         images: [
-          { url: 'https://picsum.photos/seed/sharara1/600/800', alt: 'Blue Sharara' },
+          { url: 'https://images.unsplash.com/photo-1561414927-6d86591d0c4f?w=600&auto=format&fit=crop&q=80', alt: 'Blue Sharara' },
         ],
         variants: [
           { size: 'XS', color: 'Royal Blue', colorHex: '#4169E1', stock: 1 },
@@ -247,8 +241,32 @@ async function main() {
         throw new Error(`Category ${prod.categoryName} not found`);
       }
 
-      await prisma.product.create({
-        data: {
+      // Safe update of product images and variants first
+      await prisma.productImage.deleteMany({ where: { productId: prod.id } });
+      await prisma.productVariant.deleteMany({ where: { productId: prod.id } });
+
+      await prisma.product.upsert({
+        where: { id: prod.id },
+        update: {
+          name: prod.name,
+          slug: prod.slug,
+          sku: prod.sku,
+          price: prod.price,
+          comparePrice: prod.comparePrice,
+          totalStock: prod.totalStock,
+          isNewArrival: prod.isNewArrival,
+          isBestSeller: prod.isBestSeller,
+          isFeatured: prod.isFeatured,
+          isTrending: prod.isTrending,
+          categoryId: categoryId,
+          images: {
+            create: prod.images,
+          },
+          variants: {
+            create: prod.variants,
+          },
+        },
+        create: {
           id: prod.id,
           name: prod.name,
           slug: prod.slug,
@@ -271,9 +289,9 @@ async function main() {
       });
     }
 
-    console.log('Seeded products, images and variants.');
+    console.log('Upserted products, images and variants.');
 
-    // 5. Connect Products to Collections
+    // 4. Connect Products to Collections safely
     const dbCollections = await prisma.collection.findMany();
     const eidCollection = dbCollections.find(c => c.slug === 'eid-festive');
     const monsoonCollection = dbCollections.find(c => c.slug === 'monsoon');
@@ -300,14 +318,21 @@ async function main() {
       ];
 
       for (const cp of collectionProducts) {
-        await prisma.collectionProduct.create({
-          data: cp
+        await prisma.collectionProduct.upsert({
+          where: {
+            collectionId_productId: {
+              collectionId: cp.collectionId,
+              productId: cp.productId,
+            }
+          },
+          update: { sortOrder: cp.sortOrder },
+          create: cp,
         });
       }
-      console.log('Connected products to collections.');
+      console.log('Upserted product connections to collections.');
     }
 
-    console.log('Database seeding completed successfully!');
+    console.log('Database seeding/updating completed successfully!');
   } catch (error) {
     console.error('Error seeding database:', error);
   } finally {

@@ -40,7 +40,7 @@ export default function WishlistPage() {
               <div key={item.id} className="card-product group">
                 <div className="product-img-wrapper">
                   <Link href={`/products/${item.slug}`}>
-                    <Image src={item.image || `https://picsum.photos/seed/${item.id}/400/533`} alt={item.name} fill className="object-cover" sizes="(max-width: 640px) 50vw, 25vw" />
+                    <Image src={item.image || `https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80`} alt={item.name} fill className="object-cover" sizes="(max-width: 640px) 50vw, 25vw" />
                   </Link>
                   <button onClick={() => removeItem(item.id)} className="btn-wishlist active" aria-label="Remove from wishlist">
                     <Trash2 size={15} className="stroke-red-500" />

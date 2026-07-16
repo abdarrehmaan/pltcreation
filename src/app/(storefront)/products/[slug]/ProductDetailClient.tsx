@@ -55,7 +55,7 @@ export default function ProductDetailClient({
   const wishlisted = isInWishlist(product.id);
 
   const discount = product.comparePrice ? calculateDiscount(product.price, product.comparePrice) : 0;
-  const images = product.images?.length ? product.images : [{ url: `https://picsum.photos/seed/${product.id}/600/800`, alt: product.name }];
+  const images = product.images?.length ? product.images : [{ url: `https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80`, alt: product.name }];
   const sizes = [...new Set((product.variants || []).map((v) => v.size))];
   const colors = [...new Set((product.variants || []).map((v) => v.color))];
 

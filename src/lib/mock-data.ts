@@ -16,8 +16,8 @@ export const mockProducts = [
     avgRating: 4.8,
     category: { name: 'Chikankari' },
     images: [
-      { url: 'https://picsum.photos/seed/chikankari1/600/800', alt: 'Ivory Chikankari Kurta' },
-      { url: 'https://picsum.photos/seed/chikankari2/600/800', alt: 'Ivory Chikankari Kurta Back' },
+      { url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80', alt: 'Ivory Chikankari Kurta' },
+      { url: 'https://images.unsplash.com/photo-1610030469668-93535c17b6b3?w=600&auto=format&fit=crop&q=80', alt: 'Ivory Chikankari Kurta Back' },
     ],
     variants: [
       { id: 'v1', size: 'XS', color: 'Ivory', colorHex: '#F5F0E8', stock: 2 },
@@ -43,7 +43,7 @@ export const mockProducts = [
     avgRating: 4.9,
     category: { name: 'Co-ord Sets' },
     images: [
-      { url: 'https://picsum.photos/seed/coord1/600/800', alt: 'Rose Gold Co-ord Set' },
+      { url: 'https://images.unsplash.com/photo-1608748010899-18f300247112?w=600&auto=format&fit=crop&q=80', alt: 'Rose Gold Co-ord Set' },
     ],
     variants: [
       { id: 'v6', size: 'S', color: 'Rose Gold', colorHex: '#C4748A', stock: 2 },
@@ -67,7 +67,7 @@ export const mockProducts = [
     avgRating: 4.6,
     category: { name: 'Kurtis' },
     images: [
-      { url: 'https://picsum.photos/seed/kurti1/600/800', alt: 'Floral Kurti' },
+      { url: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=600&auto=format&fit=crop&q=80', alt: 'Floral Kurti' },
     ],
     variants: [
       { id: 'v9', size: 'XS', color: 'Peach', colorHex: '#FFCBA4', stock: 8 },
@@ -94,7 +94,7 @@ export const mockProducts = [
     avgRating: 4.7,
     category: { name: 'Stitched Suits' },
     images: [
-      { url: 'https://picsum.photos/seed/anarkali1/600/800', alt: 'Anarkali Suit' },
+      { url: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&auto=format&fit=crop&q=80', alt: 'Anarkali Suit' },
     ],
     variants: [
       { id: 'v15', size: 'S', color: 'Burgundy', colorHex: '#800020', stock: 1 },
@@ -118,7 +118,7 @@ export const mockProducts = [
     avgRating: 4.5,
     category: { name: 'Unstitched Suits' },
     images: [
-      { url: 'https://picsum.photos/seed/georgette1/600/800', alt: 'Georgette Suit' },
+      { url: 'https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=600&auto=format&fit=crop&q=80', alt: 'Georgette Suit' },
     ],
     variants: [
       { id: 'v18', size: 'Free Size', color: 'Teal', colorHex: '#008080', stock: 10 },
@@ -142,7 +142,7 @@ export const mockProducts = [
     avgRating: 5.0,
     category: { name: 'Chikankari' },
     images: [
-      { url: 'https://picsum.photos/seed/silk1/600/800', alt: 'Silk Chikankari' },
+      { url: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&auto=format&fit=crop&q=80', alt: 'Silk Chikankari' },
     ],
     variants: [
       { id: 'v21', size: 'S', color: 'Pastel Pink', colorHex: '#FFB7C5', stock: 1 },
@@ -166,7 +166,7 @@ export const mockProducts = [
     avgRating: 4.4,
     category: { name: 'Kurtis' },
     images: [
-      { url: 'https://picsum.photos/seed/palazzo1/600/800', alt: 'Palazzo Kurti' },
+      { url: 'https://images.unsplash.com/photo-1611601679655-7c8bc197f0c6?w=600&auto=format&fit=crop&q=80', alt: 'Palazzo Kurti' },
     ],
     variants: [
       { id: 'v24', size: 'S', color: 'Yellow', colorHex: '#FFD700', stock: 5 },
@@ -191,7 +191,7 @@ export const mockProducts = [
     avgRating: 4.8,
     category: { name: 'Co-ord Sets' },
     images: [
-      { url: 'https://picsum.photos/seed/sharara1/600/800', alt: 'Blue Sharara' },
+      { url: 'https://images.unsplash.com/photo-1561414927-6d86591d0c4f?w=600&auto=format&fit=crop&q=80', alt: 'Blue Sharara' },
     ],
     variants: [
       { id: 'v28', size: 'XS', color: 'Royal Blue', colorHex: '#4169E1', stock: 1 },
@@ -272,20 +272,20 @@ export const mockCollections = [
     name: 'Eid Festive Edit',
     slug: 'eid-festive',
     description: 'Celebrate the most beautiful festival with our handpicked Eid collection',
-    bannerImage: 'https://picsum.photos/seed/eid-festive/1200/800',
+    bannerImage: 'https://images.unsplash.com/photo-1596783074918-c84cb06531ca?w=1200&auto=format&fit=crop&q=80',
   },
   {
     id: 'col2',
     name: 'Monsoon Freshness',
     slug: 'monsoon',
     description: 'Light, breathable fabrics perfect for the rainy season',
-    bannerImage: 'https://picsum.photos/seed/monsoon/1200/800',
+    bannerImage: 'https://images.unsplash.com/photo-1561414927-6d86591d0c4f?w=1200&auto=format&fit=crop&q=80',
   },
   {
     id: 'col3',
     name: 'Wedding Season',
     slug: 'wedding',
     description: 'Be the most elegant guest at every wedding this season',
-    bannerImage: 'https://picsum.photos/seed/wedding/1200/800',
+    bannerImage: 'https://images.unsplash.com/photo-1583391265517-35bbdad01209?w=1200&auto=format&fit=crop&q=80',
   },
 ];

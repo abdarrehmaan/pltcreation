@@ -113,7 +113,7 @@ export default function AdminOffersPage() {
       } else {
         payload.title = formData.title;
         payload.description = formData.description;
-        payload.imageUrl = formData.imageUrl || `https://picsum.photos/seed/${formData.title.length}/1200/400`;
+        payload.imageUrl = formData.imageUrl || `https://images.unsplash.com/photo-1596783074918-c84cb06531ca?w=1200&auto=format&fit=crop&q=80`;
         payload.linkUrl = formData.linkUrl;
         payload.type = formData.offerType;
       }

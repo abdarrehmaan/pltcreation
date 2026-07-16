@@ -41,7 +41,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const wishlisted = isInWishlist(product.id);
 
   const images = product.images || [];
-  const mainImage = images[imageIdx]?.url || `https://picsum.photos/seed/${product.id}/400/600`;
+  const mainImage = images[imageIdx]?.url || `https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80`;
   const hoverImage = images[1]?.url || mainImage;
   const discount = product.comparePrice ? calculateDiscount(product.price, product.comparePrice) : 0;
 

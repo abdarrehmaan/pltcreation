@@ -16,7 +16,7 @@ export default function OfferBanner() {
             style={{ minHeight: '240px' }}
           >
             <Image
-              src="https://picsum.photos/seed/chikankari-offer/900/500"
+              src="https://images.unsplash.com/photo-1596783074918-c84cb06531ca?w=900&auto=format&fit=crop&q=80"
               alt="Chikankari Collection Offer"
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -46,7 +46,7 @@ export default function OfferBanner() {
               className="relative rounded-3xl overflow-hidden group block"
             >
               <Image
-                src="https://picsum.photos/seed/new-arrivals-offer/900/400"
+                src="https://images.unsplash.com/photo-1561414927-6d86591d0c4f?w=900&auto=format&fit=crop&q=80"
                 alt="New Arrivals"
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -68,7 +68,7 @@ export default function OfferBanner() {
               className="relative rounded-3xl overflow-hidden group block"
             >
               <Image
-                src="https://picsum.photos/seed/sale-offer/900/400"
+                src="https://images.unsplash.com/photo-1583391265517-35bbdad01209?w=900&auto=format&fit=crop&q=80"
                 alt="Sale Collection"
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
