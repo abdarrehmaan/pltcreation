@@ -24,6 +24,7 @@ const nextConfig = {
       },
     ],
   },
+  serverExternalPackages: ['@prisma/client'],
   experimental: {
     serverActions: {
       allowedOrigins: ['localhost:3000'],

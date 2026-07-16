@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import ProductGrid from '@/components/storefront/ProductGrid';
-import SectionHeader from '@/components/storefront/SectionHeader';
-import { mockProducts } from '@/lib/mock-data';
+import { prisma } from '@/lib/prisma';
+import { notFound } from 'next/navigation';
 
-const categoryMeta: Record<string, { name: string; description: string; image: string }> = {
+const defaultMeta: Record<string, { name: string; description: string; image: string }> = {
   chikankari: {
     name: 'Chikankari',
     description: 'Handcrafted with love — exquisite Chikankari embroidery that celebrates the artistry of Lucknow.',
@@ -36,29 +36,65 @@ const categoryMeta: Record<string, { name: string; description: string; image: s
   },
 };
 
-export function generateStaticParams() {
-  return Object.keys(categoryMeta).map((slug) => ({ slug }));
+export const dynamic = 'force-dynamic';
+
+export async function generateStaticParams() {
+  const categories = await prisma.category.findMany({
+    select: { slug: true },
+  });
+  return categories.map((c) => ({ slug: c.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const cat = categoryMeta[slug];
-  if (!cat) return {};
+  const category = await prisma.category.findUnique({
+    where: { slug },
+  });
+  if (!category) return {};
   return {
-    title: `${cat.name} Collection`,
-    description: cat.description,
+    title: `${category.name} Collection`,
+    description: category.description || 'Premium ethnic fashion',
   };
 }
 
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const cat = categoryMeta[slug];
-  const products = mockProducts.filter(
-    (p) => p.category?.name.toLowerCase().replace(/[\s-]+/g, '-') === slug ||
-           p.category?.name.toLowerCase() === slug.replace(/-/g, ' ')
-  );
-  // fallback: show all if no match
-  const displayProducts = products.length ? products : mockProducts;
+  
+  const category = await prisma.category.findUnique({
+    where: { slug },
+  });
+
+  if (!category) {
+    return notFound();
+  }
+
+  const products = await prisma.product.findMany({
+    where: {
+      categoryId: category.id,
+      isActive: true,
+    },
+    include: {
+      images: true,
+      category: { select: { name: true } },
+    },
+  });
+
+  const formattedProducts = products.map((p) => ({
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    sku: p.sku,
+    price: Number(p.price),
+    comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
+    totalStock: p.totalStock,
+    isNewArrival: p.isNewArrival,
+    isBestSeller: p.isBestSeller,
+    category: { name: p.category.name },
+    images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
+  }));
+
+  const bannerImage = category.image || defaultMeta[slug]?.image || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=80';
+  const description = category.description || defaultMeta[slug]?.description || 'Premium collection of women ethnic wear.';
 
   return (
     <div className="bg-white min-h-screen">
@@ -66,32 +102,24 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
       <div className="relative h-48 md:h-64 overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={cat?.image || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=80'}
-          alt={cat?.name || 'Category'}
+          src={bannerImage}
+          alt={category.name}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-brand-900/60" />
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
           <h1 className="font-display text-3xl md:text-4xl font-bold text-white mb-2">
-            {cat?.name || 'Products'}
+            {category.name}
           </h1>
-          {cat?.description && (
-            <p className="text-white/80 text-sm md:text-base max-w-lg">{cat.description}</p>
-          )}
+          <p className="text-white/80 text-sm md:text-base max-w-lg">{description}</p>
         </div>
       </div>
 
       <div className="container-plt py-12">
         <div className="flex items-center justify-between mb-8">
-          <p className="text-sm text-gray-500">{displayProducts.length} products found</p>
-          <select className="px-4 py-2 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-200">
-            <option>Newest First</option>
-            <option>Price: Low to High</option>
-            <option>Price: High to Low</option>
-            <option>Most Popular</option>
-          </select>
+          <p className="text-sm text-gray-500">{formattedProducts.length} products found</p>
         </div>
-        <ProductGrid products={displayProducts} columns={4} />
+        <ProductGrid products={formattedProducts} columns={4} />
       </div>
     </div>
   );

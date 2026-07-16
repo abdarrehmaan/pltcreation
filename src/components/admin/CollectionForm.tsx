@@ -1,11 +1,13 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Save, X, Image as ImageIcon } from 'lucide-react';
+import { Save, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 const collectionSchema = z.object({
   name: z.string().min(2, 'Name is required'),
@@ -17,6 +19,9 @@ const collectionSchema = z.object({
 type CollectionFormValues = z.infer<typeof collectionSchema>;
 
 export default function CollectionForm({ initialData }: { initialData?: any }) {
+  const router = useRouter();
+  const [saving, setSaving] = useState(false);
+
   const { register, handleSubmit, formState: { errors } } = useForm<CollectionFormValues>({
     resolver: zodResolver(collectionSchema),
     defaultValues: initialData || {
@@ -25,8 +30,30 @@ export default function CollectionForm({ initialData }: { initialData?: any }) {
   });
 
   const onSubmit = async (data: CollectionFormValues) => {
-    console.log('Collection data:', data);
-    alert('Collection saved successfully (Mock)');
+    setSaving(true);
+    try {
+      const url = initialData ? `/api/admin/collections/${initialData.id}` : '/api/admin/collections';
+      const method = initialData ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        toast.success(initialData ? 'Collection updated successfully!' : 'Collection created successfully!');
+        router.refresh();
+        router.push('/admin/collections');
+      } else {
+        toast.error(json.error || 'Failed to save collection');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'An error occurred');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -39,11 +66,13 @@ export default function CollectionForm({ initialData }: { initialData?: any }) {
           <Link href="/admin/collections" className="btn-ghost">
             <X size={16} /> Cancel
           </Link>
-          <button type="submit" className="btn-primary py-2 px-6">
-            <Save size={16} /> Save Collection
+          <button type="submit" disabled={saving} className="btn-primary py-2 px-6 flex items-center gap-2">
+            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+            Save Collection
           </button>
         </div>
       </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">

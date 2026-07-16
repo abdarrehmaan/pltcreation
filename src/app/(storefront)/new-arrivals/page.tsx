@@ -1,15 +1,41 @@
 import type { Metadata } from 'next';
 import ProductGrid from '@/components/storefront/ProductGrid';
-import SectionHeader from '@/components/storefront/SectionHeader';
-import { mockProducts } from '@/lib/mock-data';
+import { prisma } from '@/lib/prisma';
 
 export const metadata: Metadata = {
   title: 'New Arrivals',
   description: 'Shop the latest new arrivals in women\'s ethnic wear at PLT Creation. Fresh Chikankari, Kurtis, Co-ord Sets and more.',
 };
 
-export default function NewArrivalsPage() {
-  const products = mockProducts.filter(p => p.isNewArrival);
+export default async function NewArrivalsPage() {
+  const dbProducts = await prisma.product.findMany({
+    where: {
+      isNewArrival: true,
+      isActive: true,
+    },
+    include: {
+      category: { select: { name: true } },
+      images: { orderBy: { sortOrder: 'asc' } },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  const products = dbProducts.map((p) => ({
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    price: Number(p.price),
+    comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
+    totalStock: p.totalStock,
+    isNewArrival: p.isNewArrival,
+    isBestSeller: p.isBestSeller,
+    category: { name: p.category.name },
+    images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
+    avgRating: 4.8,
+  }));
+
   return (
     <div className="bg-white min-h-screen">
       <div className="py-14 text-center" style={{ background: 'linear-gradient(135deg, #6B2D4F 0%, #C4748A 100%)' }}>
@@ -26,8 +52,9 @@ export default function NewArrivalsPage() {
             <option>Price: High to Low</option>
           </select>
         </div>
-        <ProductGrid products={products.length ? products : mockProducts} columns={4} />
+        <ProductGrid products={products} columns={4} />
       </div>
     </div>
   );
 }
+

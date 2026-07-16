@@ -1,20 +1,19 @@
-// Prisma client stub — connect to real Supabase once DATABASE_URL is set in .env.local
-// For now this is a type-safe stub that works without a real DB connection
+import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
-let prisma: any;
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { PrismaClient } = require('@prisma/client');
-  const globalForPrisma = globalThis as unknown as { prisma: any };
-  prisma = globalForPrisma.prisma ?? new PrismaClient({
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    adapter,
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   });
-  if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
-} catch {
-  // Prisma not yet generated — run: npx prisma generate
-  prisma = null;
-}
 
-export { prisma };
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+
 export default prisma;

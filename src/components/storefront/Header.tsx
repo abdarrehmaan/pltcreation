@@ -11,9 +11,8 @@ import { useCartStore } from '@/features/cart/store';
 import { useWishlistStore } from '@/features/wishlist/store';
 import { useAuthStore } from '@/features/auth/store';
 import { cn, formatPrice } from '@/lib/utils';
-import { mockProducts } from '@/lib/mock-data';
 
-const categories = [
+const defaultCategories = [
   { name: 'Chikankari', slug: 'chikankari', description: 'Handcrafted elegance' },
   { name: 'Co-ord Sets', slug: 'coord-sets', description: 'Modern ethnic fusion' },
   { name: 'Kurtis', slug: 'kurtis', description: 'Everyday chic' },
@@ -31,8 +30,9 @@ const navLinks = [
   { label: 'About Us', href: '/about' },
 ];
 
-export default function Header() {
+export default function Header({ featuredProducts = [] }: { featuredProducts?: any[] }) {
   const pathname = usePathname();
+  const [categories, setCategories] = useState<any[]>(defaultCategories);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [catOpen, setCatOpen] = useState(false);
@@ -42,6 +42,21 @@ export default function Header() {
   
   const searchRef = useRef<HTMLInputElement>(null);
   const cartTimer = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('/api/admin/categories');
+        const data = await res.json();
+        if (res.ok) {
+          setCategories(data.categories.filter((c: any) => c.isActive) || []);
+        }
+      } catch (err) {
+        console.error('Failed to load categories in header:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const cartItems = useCartStore((s) => s.items);
   const cartCount = useCartStore((s) => s.getItemCount());
@@ -161,7 +176,7 @@ export default function Header() {
                         onMouseEnter={() => setCatOpen(true)}
                       >
                         <div className="col-span-2 pb-3 border-b border-gray-100 mb-2">
-                          <p className="text-xs text-gray-400 uppercase tracking-[0.2em] font-bold">Discover Collections</p>
+                          <p className="text-xs text-gray-400 uppercase tracking-[0.2em] font-bold">Discover Categories</p>
                         </div>
                         {categories.map((cat) => (
                           <Link
@@ -352,7 +367,7 @@ export default function Header() {
                   <div>
                     <h3 className="text-xs uppercase tracking-widest font-bold text-gray-500 mb-4">Featured Products</h3>
                     <div className="space-y-3">
-                      {mockProducts.slice(0, 3).map(p => (
+                      {featuredProducts.slice(0, 3).map(p => (
                         <Link key={p.id} href={`/products/${p.slug}`} onClick={() => setSearchOpen(false)} className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors group">
                           <img src={p.images[0]?.url} alt={p.name} className="w-12 h-12 rounded object-cover" />
                           <div>

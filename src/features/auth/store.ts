@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { supabase } from '@/lib/supabase';
 
 export interface User {
   id: string;
@@ -13,103 +14,93 @@ export interface User {
 
 interface AuthState {
   user: User | null;
-  registeredUsers: (User & { password?: string })[];
   login: (emailOrPhone: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (name: string, email: string, phone: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }
 
-const DEFAULT_USERS: (User & { password?: string })[] = [
-  {
-    id: 'u-customer',
-    name: 'Jane Doe',
-    email: 'customer@pltcreation.com',
-    phone: '9876543210',
-    role: 'CUSTOMER',
-    password: 'password123',
-  },
-  {
-    id: 'u-admin',
-    name: 'Admin User',
-    email: 'admin@pltcreation.com',
-    phone: '8765432109',
-    role: 'ADMIN',
-    password: 'admin123',
-  },
-];
-
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
-      registeredUsers: DEFAULT_USERS,
 
       login: async (emailOrPhone, password) => {
-        // Simple delay to simulate server communication
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: emailOrPhone.trim().toLowerCase(),
+            password: password,
+          });
 
-        const cleanInput = emailOrPhone.trim().toLowerCase();
-        const cleanPassword = password.trim();
+          if (error) {
+            return { success: false, error: error.message };
+          }
 
-        // Check in registeredUsers
-        const foundUser = get().registeredUsers.find(
-          (u) =>
-            (u.email.toLowerCase() === cleanInput || u.phone === cleanInput) &&
-            u.password === cleanPassword
-        );
+          if (data?.user) {
+            // Fetch public profile details from Prisma API
+            const res = await fetch(`/api/auth/user?id=${data.user.id}`);
+            let profile = null;
+            if (res.ok) {
+              const profileData = await res.json();
+              profile = profileData.user;
+            }
 
-        if (foundUser) {
-          // Destructure password out so it's not in session state
-          const { password: _, ...userSession } = foundUser;
-          set({ user: userSession });
-          return { success: true };
+            const userSession: User = {
+              id: data.user.id,
+              name: profile?.name || data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
+              email: data.user.email!,
+              phone: profile?.phone || data.user.phone || '',
+              role: profile?.role || 'CUSTOMER',
+            };
+
+            set({ user: userSession });
+            return { success: true };
+          }
+
+          return { success: false, error: 'Login failed' };
+        } catch (err: any) {
+          return { success: false, error: err.message || 'Login failed' };
         }
-
-        return { success: false, error: 'Invalid email/mobile number or password' };
       },
 
       register: async (name, email, phone, password) => {
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        try {
+          // Sign up user in Supabase Auth (the DB trigger will sync to public users and wallets tables)
+          const { data, error } = await supabase.auth.signUp({
+            email: email.trim().toLowerCase(),
+            password,
+            options: {
+              data: {
+                name: name.trim(),
+                phone: phone.trim(),
+              },
+            },
+          });
 
-        const cleanEmail = email.trim().toLowerCase();
-        const cleanPhone = phone.trim();
+          if (error) {
+            return { success: false, error: error.message };
+          }
 
-        // Check if user already exists
-        const exists = get().registeredUsers.some(
-          (u) => u.email.toLowerCase() === cleanEmail || u.phone === cleanPhone
-        );
+          if (data?.user) {
+            return { success: true };
+          }
 
-        if (exists) {
-          return { success: false, error: 'User with this email or mobile number already exists' };
+          return { success: false, error: 'Registration failed' };
+        } catch (err: any) {
+          return { success: false, error: err.message || 'Registration failed' };
         }
-
-        const newUser: User & { password?: string } = {
-          id: `u-${Date.now()}`,
-          name: name.trim(),
-          email: cleanEmail,
-          phone: cleanPhone,
-          role: 'CUSTOMER',
-          password: password.trim(),
-        };
-
-        set((state) => ({
-          registeredUsers: [...state.registeredUsers, newUser],
-        }));
-
-        return { success: true };
       },
 
       logout: () => {
-        set({ user: null });
+        supabase.auth.signOut().then(() => {
+          set({ user: null });
+        });
       },
     }),
     {
       name: 'plt-auth',
       storage: createJSONStorage(() => localStorage),
-      // Only persist the user session and registeredUsers list
       partialize: (state) => ({
         user: state.user,
-        registeredUsers: state.registeredUsers,
       }),
     }
   )

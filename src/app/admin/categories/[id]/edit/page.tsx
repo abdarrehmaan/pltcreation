@@ -1,15 +1,25 @@
 import React from 'react';
 import CategoryForm from '@/components/admin/CategoryForm';
+import { prisma } from '@/lib/prisma';
+import { notFound } from 'next/navigation';
 
 export default async function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  // Mock data
+
+  const category = await prisma.category.findUnique({
+    where: { id },
+  });
+
+  if (!category) {
+    return notFound();
+  }
+
   const initialData = {
-    id: id,
-    name: 'Chikankari',
-    slug: 'chikankari',
-    description: 'Beautiful hand-embroidered chikankari from Lucknow.',
-    isActive: true,
+    id: category.id,
+    name: category.name,
+    slug: category.slug,
+    description: category.description || '',
+    isActive: category.isActive,
   };
 
   return (

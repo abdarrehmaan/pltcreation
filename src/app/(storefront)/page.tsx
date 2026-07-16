@@ -6,10 +6,11 @@ import SectionHeader from '@/components/storefront/SectionHeader';
 import PremiumTrust from '@/components/storefront/PremiumTrust';
 import BrandStory from '@/components/storefront/BrandStory';
 import { ReviewCard } from '@/components/storefront/ReviewCard';
-import { mockProducts, mockReviews, mockCollections } from '@/lib/mock-data';
+import { mockReviews } from '@/lib/mock-data';
 import Link from 'next/link';
 import CollectionsBanner from '@/components/storefront/CollectionsBanner';
 import OfferBanner from '@/components/storefront/OfferBanner';
+import { prisma } from '@/lib/prisma';
 
 export const metadata: Metadata = {
   title: 'PLT Creation — Premium Women\'s Ethnic Wear | Chikankari, Kurtis & More',
@@ -17,10 +18,46 @@ export const metadata: Metadata = {
     'Discover PLT Creation\'s exquisite collection of Chikankari, Kurtis, Co-ord Sets, Stitched & Unstitched Suits. Free shipping above ₹1499. Easy 48-hour returns.',
 };
 
-export default function HomePage() {
-  const newArrivals = mockProducts.filter((p) => p.isNewArrival).slice(0, 4);
-  const trending = mockProducts.filter((p) => p.isTrending).slice(0, 4);
-  const bestSellers = mockProducts.filter((p) => p.isBestSeller).slice(0, 4);
+export default async function HomePage() {
+  const dbProducts = await prisma.product.findMany({
+    where: { isActive: true },
+    include: {
+      category: { select: { name: true } },
+      images: { orderBy: { sortOrder: 'asc' } },
+    },
+  });
+
+  const formattedProducts = dbProducts.map((p) => ({
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    price: Number(p.price),
+    comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
+    totalStock: p.totalStock,
+    isNewArrival: p.isNewArrival,
+    isBestSeller: p.isBestSeller,
+    isTrending: p.isTrending,
+    category: { name: p.category.name },
+    images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
+    avgRating: 4.8,
+  }));
+
+  const newArrivals = formattedProducts.filter((p) => p.isNewArrival).slice(0, 4);
+  const trending = formattedProducts.filter((p) => p.isTrending).slice(0, 4);
+  const bestSellers = formattedProducts.filter((p) => p.isBestSeller).slice(0, 4);
+
+  const collectionsDb = await prisma.collection.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: 'asc' },
+  });
+
+  const collections = collectionsDb.map((c) => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    description: c.description || '',
+    bannerImage: c.bannerImage || 'https://picsum.photos/seed/collection/1200/800',
+  }));
 
   return (
     <>
@@ -48,7 +85,7 @@ export default function HomePage() {
       </section>
 
       {/* Collections Lookbook */}
-      <CollectionsBanner collections={mockCollections} />
+      <CollectionsBanner collections={collections} />
 
       {/* Featured Categories */}
       <FeaturedCategories />

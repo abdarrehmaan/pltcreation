@@ -1,35 +1,57 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Printer, Truck, CheckCircle, Package } from 'lucide-react';
+import { ArrowLeft, Printer } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
+import { prisma } from '@/lib/prisma';
+import { notFound } from 'next/navigation';
+import OrderStatusUpdater from '@/components/admin/OrderStatusUpdater';
 
 export default async function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  // Mock Order Data
+
+  const orderDb = await prisma.order.findUnique({
+    where: { id },
+    include: {
+      user: true,
+      items: true,
+    },
+  });
+
+  if (!orderDb) {
+    return notFound();
+  }
+
   const order = {
-    id: id,
-    orderNumber: 'ORD-2026-8899',
-    date: new Date().toISOString(),
-    status: 'PROCESSING',
-    paymentStatus: 'PAID',
-    paymentMethod: 'UPI',
+    id: orderDb.id,
+    orderNumber: orderDb.orderNumber,
+    date: orderDb.createdAt.toISOString(),
+    status: orderDb.status,
+    paymentStatus: orderDb.paymentStatus,
+    paymentMethod: orderDb.paymentMethod,
     customer: {
-      name: 'Priya Sharma',
-      email: 'priya@example.com',
-      phone: '+91 9876543210',
+      name: orderDb.shippingName || orderDb.user?.name || 'Guest',
+      email: orderDb.user?.email || '',
+      phone: orderDb.shippingPhone || orderDb.user?.phone || '—',
     },
     shippingAddress: {
-      line1: '123 Rose Avenue',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      pincode: '400001',
+      line1: orderDb.shippingLine1 || '',
+      line2: orderDb.shippingLine2 || '',
+      city: orderDb.shippingCity || '',
+      state: orderDb.shippingState || '',
+      pincode: orderDb.shippingPincode || '',
     },
-    items: [
-      { id: '1', name: 'Hand-embroidered Chikankari Kurta', sku: 'HIF-CHK-001', price: 2999, quantity: 1, size: 'M' },
-    ],
-    subtotal: 2999,
-    shipping: 0,
-    total: 2999,
+    items: orderDb.items.map((item) => ({
+      id: item.id,
+      name: item.productName,
+      sku: item.productSku,
+      price: Number(item.unitPrice),
+      quantity: item.quantity,
+      size: item.size || '—',
+      color: item.color || '—',
+    })),
+    subtotal: Number(orderDb.subtotal),
+    shipping: Number(orderDb.shippingCharge),
+    total: Number(orderDb.total),
   };
 
   return (
@@ -44,7 +66,11 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
               Order {order.orderNumber}
             </h2>
             <p className="text-sm text-gray-500">
-              Placed on {new Date(order.date).toLocaleDateString()}
+              Placed on {new Date(order.date).toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              })}
             </p>
           </div>
         </div>
@@ -52,16 +78,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
           <button className="btn-ghost">
             <Printer size={16} /> Print Invoice
           </button>
-          <div className="flex items-center gap-2">
-            <select className="input-base py-2 w-auto bg-white">
-              <option value="PENDING">Pending</option>
-              <option value="PROCESSING" selected>Processing</option>
-              <option value="SHIPPED">Shipped</option>
-              <option value="DELIVERED">Delivered</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-            <button className="btn-primary py-2 px-4">Update Status</button>
-          </div>
+          <OrderStatusUpdater orderId={order.id} currentStatus={order.status} />
         </div>
       </div>
 
@@ -74,7 +91,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
                 <div key={item.id} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
                   <div>
                     <p className="font-semibold text-gray-900">{item.name}</p>
-                    <p className="text-xs text-gray-500">SKU: {item.sku} • Size: {item.size}</p>
+                    <p className="text-xs text-gray-500">SKU: {item.sku} • Size: {item.size} • Color: {item.color}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-gray-900">{formatPrice(item.price)}</p>
@@ -114,6 +131,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
             <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Shipping Address</h3>
             <div className="text-sm text-gray-700 space-y-1">
               <p>{order.shippingAddress.line1}</p>
+              {order.shippingAddress.line2 && <p>{order.shippingAddress.line2}</p>}
               <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.pincode}</p>
             </div>
           </div>

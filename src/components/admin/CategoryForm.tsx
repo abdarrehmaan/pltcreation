@@ -1,11 +1,13 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Save, X, Image as ImageIcon } from 'lucide-react';
+import { Save, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 const categorySchema = z.object({
   name: z.string().min(2, 'Name is required'),
@@ -17,6 +19,9 @@ const categorySchema = z.object({
 type CategoryFormValues = z.infer<typeof categorySchema>;
 
 export default function CategoryForm({ initialData }: { initialData?: any }) {
+  const router = useRouter();
+  const [saving, setSaving] = useState(false);
+
   const { register, handleSubmit, formState: { errors } } = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
     defaultValues: initialData || {
@@ -25,8 +30,30 @@ export default function CategoryForm({ initialData }: { initialData?: any }) {
   });
 
   const onSubmit = async (data: CategoryFormValues) => {
-    console.log('Category data:', data);
-    alert('Category saved successfully (Mock)');
+    setSaving(true);
+    try {
+      const url = initialData ? `/api/admin/categories/${initialData.id}` : '/api/admin/categories';
+      const method = initialData ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        toast.success(initialData ? 'Category updated successfully!' : 'Category created successfully!');
+        router.refresh();
+        router.push('/admin/categories');
+      } else {
+        toast.error(json.error || 'Failed to save category');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'An error occurred');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -39,8 +66,9 @@ export default function CategoryForm({ initialData }: { initialData?: any }) {
           <Link href="/admin/categories" className="btn-ghost">
             <X size={16} /> Cancel
           </Link>
-          <button type="submit" className="btn-primary py-2 px-6">
-            <Save size={16} /> Save Category
+          <button type="submit" disabled={saving} className="btn-primary py-2 px-6 flex items-center gap-2">
+            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+            Save Category
           </button>
         </div>
       </div>

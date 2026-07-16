@@ -7,6 +7,7 @@ import { useCartStore } from '@/features/cart/store';
 import { useAuthStore } from '@/features/auth/store';
 import { formatPrice, calculateShipping } from '@/lib/utils';
 import toast from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 const indianStates = [
   'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
@@ -27,6 +28,7 @@ const paymentMethods = [
 ];
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const { items, getSubtotal, couponDiscount, couponCode } = useCartStore();
   const subtotal = getSubtotal();
   const shipping = calculateShipping(subtotal - couponDiscount);
@@ -60,10 +62,54 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      toast.error('Please login to place an order.');
+      router.push('/login');
+      return;
+    }
+
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    toast.success('Order placed successfully! You will receive a confirmation email shortly.');
-    setLoading(false);
+
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          fullName: form.fullName,
+          phone: form.phone,
+          email: form.email,
+          line1: form.line1,
+          line2: form.line2,
+          city: form.city,
+          state: form.state,
+          pincode: form.pincode,
+          paymentMethod,
+          items,
+          subtotal,
+          shippingCharge: shipping,
+          discount: couponDiscount,
+          total,
+          couponCode,
+          couponDiscount,
+          prepaidDiscount,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        toast.success('Order placed successfully! Thank you for shopping with us.');
+        useCartStore.getState().clearCart();
+        router.push('/account/orders');
+      } else {
+        toast.error(data.error || 'Failed to place order. Please try again.');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (items.length === 0) {
@@ -101,7 +147,7 @@ export default function CheckoutPage() {
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Phone Number *</label>
-                    <input name="phone" required type="tel" pattern="[6-9]\\d{9}" value={form.phone} onChange={handleChange} placeholder="10-digit mobile number" className="input-base" />
+                    <input name="phone" required type="tel" pattern="[6-9][0-9]{9}" value={form.phone} onChange={handleChange} placeholder="10-digit mobile number" className="input-base" />
                   </div>
                   <div className="sm:col-span-2">
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Email Address *</label>
@@ -128,7 +174,7 @@ export default function CheckoutPage() {
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Pincode *</label>
-                    <input name="pincode" required pattern="\\d{6}" value={form.pincode} onChange={handleChange} placeholder="6-digit pincode" className="input-base" />
+                    <input name="pincode" required pattern="[0-9]{6}" value={form.pincode} onChange={handleChange} placeholder="6-digit pincode" className="input-base" />
                   </div>
                 </div>
               </div>

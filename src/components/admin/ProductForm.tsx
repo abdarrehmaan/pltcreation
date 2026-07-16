@@ -1,11 +1,13 @@
 "use client";
 
-import React from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Save, X, Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
+import { Save, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 const productSchema = z.object({
   name: z.string().min(3, 'Name is required'),
@@ -25,11 +27,15 @@ const productSchema = z.object({
 type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
-  initialData?: any; // You can strongly type this based on your Prisma model
+  initialData?: any;
 }
 
 export default function ProductForm({ initialData }: ProductFormProps) {
-  const { register, handleSubmit, control, formState: { errors } } = useForm<ProductFormValues>({
+  const router = useRouter();
+  const [categories, setCategories] = useState<any[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  const { register, handleSubmit, formState: { errors } } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema) as any,
     defaultValues: initialData || {
       isActive: true,
@@ -40,10 +46,56 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     },
   });
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await fetch('/api/admin/categories');
+        const json = await res.json();
+        if (res.ok) {
+          setCategories(json.categories || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   const onSubmit = async (data: ProductFormValues) => {
-    console.log('Form data:', data);
-    // Here you would normally POST or PUT to your API
-    alert('Product saved successfully (Mock)');
+    setSaving(true);
+    try {
+      const payload = {
+        ...data,
+        images: initialData?.images || [
+          { url: 'https://picsum.photos/seed/product/600/800', alt: data.name }
+        ],
+        variants: initialData?.variants || [
+          { size: 'Free Size', color: 'Default', colorHex: '#CCCCCC', stock: data.totalStock }
+        ]
+      };
+
+      const url = initialData ? `/api/admin/products/${initialData.id}` : '/api/admin/products';
+      const method = initialData ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        toast.success(initialData ? 'Product updated successfully!' : 'Product created successfully!');
+        router.refresh();
+        router.push('/admin/products');
+      } else {
+        toast.error(json.error || 'Failed to save product');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'An error occurred');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -56,8 +108,9 @@ export default function ProductForm({ initialData }: ProductFormProps) {
           <Link href="/admin/products" className="btn-ghost">
             <X size={16} /> Cancel
           </Link>
-          <button type="submit" className="btn-primary py-2 px-6">
-            <Save size={16} /> Save Product
+          <button type="submit" disabled={saving} className="btn-primary py-2 px-6 flex items-center gap-2">
+            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} 
+            Save Product
           </button>
         </div>
       </div>
@@ -114,13 +167,13 @@ export default function ProductForm({ initialData }: ProductFormProps) {
             </div>
           </div>
 
-          {/* Images (Mock placeholder) */}
+          {/* Images */}
           <div className="bg-white rounded-2xl shadow-card p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Images</h3>
             <div className="border-2 border-dashed border-gray-300 rounded-xl p-10 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors cursor-pointer">
               <ImageIcon size={32} className="mb-2 text-gray-400" />
-              <p className="font-medium">Click to upload images</p>
-              <p className="text-xs mt-1">PNG, JPG, WEBP up to 5MB</p>
+              <p className="font-medium">Using mock product image</p>
+              <p className="text-xs mt-1">(Image configuration loaded from catalog)</p>
             </div>
           </div>
         </div>
@@ -135,10 +188,9 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
                 <select {...register('categoryId')} className="input-base bg-white">
                   <option value="">Select Category</option>
-                  <option value="cat_1">Chikankari</option>
-                  <option value="cat_2">Kurtis</option>
-                  <option value="cat_3">Stitched Suits</option>
-                  <option value="cat_4">Unstitched Suits</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
                 </select>
                 {errors.categoryId && <p className="text-red-500 text-xs mt-1">{errors.categoryId.message}</p>}
               </div>

@@ -1,18 +1,44 @@
 import React from 'react';
 import ProductForm from '@/components/admin/ProductForm';
-import { mockProducts } from '@/lib/mock-data';
+import { prisma } from '@/lib/prisma';
+import { notFound } from 'next/navigation';
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  // Mock finding the product
-  const product = mockProducts.find(p => p.id === id) || mockProducts[0];
-  
-  // Format the data for the form
+
+  const product = await prisma.product.findUnique({
+    where: { id },
+    include: {
+      images: true,
+      variants: true,
+    },
+  });
+
+  if (!product) {
+    return notFound();
+  }
+
   const initialData = {
-    ...product,
+    id: product.id,
+    name: product.name,
+    slug: product.slug,
+    sku: product.sku,
+    description: product.description || '',
+    categoryId: product.categoryId,
     price: Number(product.price),
     comparePrice: product.comparePrice ? Number(product.comparePrice) : undefined,
-    categoryId: 'cat_1', // Mock category id since our mock data only has name
+    isActive: product.isActive,
+    isFeatured: product.isFeatured,
+    isNewArrival: product.isNewArrival,
+    isBestSeller: product.isBestSeller,
+    totalStock: product.totalStock,
+    images: product.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
+    variants: product.variants.map((v) => ({
+      size: v.size,
+      color: v.color,
+      colorHex: v.colorHex || '',
+      stock: v.stock,
+    })),
   };
 
   return (
