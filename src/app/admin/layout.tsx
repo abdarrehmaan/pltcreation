@@ -12,6 +12,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [showPw, setShowPw] = useState(false);
   const [checking, setChecking] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   useEffect(() => {
     const authStatus = sessionStorage.getItem('admin_authenticated');
@@ -108,11 +109,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <AdminSidebar />
+    <div className="flex h-screen bg-gray-50 overflow-hidden relative">
+      <AdminSidebar mobileOpen={isMobileOpen} setMobileOpen={setIsMobileOpen} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <AdminHeader />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <AdminHeader setMobileOpen={setIsMobileOpen} />
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
       </div>
     </div>
   );
