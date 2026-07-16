@@ -160,7 +160,7 @@ export default function HeroBanner() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="font-display text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-[1.05] mb-6 tracking-tight drop-shadow-2xl"
+              className="font-display text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-[1.1] sm:leading-[1.05] mb-4 sm:mb-6 tracking-tight drop-shadow-2xl"
             >
               {slide.title}
             </motion.h1>
@@ -170,7 +170,7 @@ export default function HeroBanner() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className={`text-gray-300 text-lg md:text-xl leading-relaxed mb-10 max-w-lg ${slide.align === 'left' ? 'mr-auto' : 'ml-auto'} font-light drop-shadow-md`}
+              className={`text-gray-300 text-sm sm:text-lg md:text-xl leading-relaxed mb-6 sm:mb-10 max-w-lg ${slide.align === 'left' ? 'mr-auto' : 'ml-auto'} font-light drop-shadow-md`}
             >
               {slide.subtitle}
             </motion.p>
@@ -180,22 +180,24 @@ export default function HeroBanner() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className={`flex flex-wrap gap-5 items-center ${slide.align === 'left' ? 'justify-start' : 'justify-end'}`}
+              className={`flex flex-col sm:flex-row gap-3 sm:gap-5 items-center ${slide.align === 'left' ? 'justify-start' : 'justify-end'}`}
             >
               <Link
                 href={slide.ctaHref}
                 id={`hero-cta-${slide.id}`}
-                className="btn-gold text-sm md:text-base px-10 py-4 uppercase tracking-widest font-bold"
+                className="w-full sm:w-auto text-center btn-gold text-xs sm:text-sm md:text-base px-6 py-3 sm:px-10 sm:py-4 uppercase tracking-widest font-bold"
               >
                 {slide.cta}
               </Link>
               <Link
                 href="/collections"
-                className="btn-ghost text-white border border-white/30 hover:bg-white hover:text-gray-900 text-sm md:text-base px-10 py-4 uppercase tracking-widest font-bold backdrop-blur-sm"
+                className="w-full sm:w-auto text-center btn-ghost text-white border border-white/30 hover:bg-white hover:text-gray-900 text-xs sm:text-sm md:text-base px-6 py-3 sm:px-10 sm:py-4 uppercase tracking-widest font-bold backdrop-blur-sm"
               >
                 Explore Collections
               </Link>
             </motion.div>
+
+
 
             {/* Social Proof */}
             <motion.div 
