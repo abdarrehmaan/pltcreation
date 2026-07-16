@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Save, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Save, X, Image as ImageIcon, Loader2, Trash2, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { supabase } from '@/lib/supabase';
 
 const productSchema = z.object({
   name: z.string().min(3, 'Name is required'),
@@ -34,6 +35,11 @@ export default function ProductForm({ initialData }: ProductFormProps) {
   const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<{ url: string; alt: string }[]>(
+    initialData?.images || []
+  );
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { register, handleSubmit, formState: { errors } } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema) as any,
@@ -61,14 +67,57 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     fetchCategories();
   }, []);
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `products/${fileName}`;
+
+        const { data, error } = await supabase.storage
+          .from('products')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true,
+          });
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('products')
+          .getPublicUrl(filePath);
+
+        setUploadedImages((prev) => [...prev, { url: publicUrl, alt: file.name }]);
+      }
+      toast.success('Images uploaded successfully!');
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      toast.error(`Upload failed: ${err.message}. Make sure you created a public bucket named "products" in Supabase!`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const onSubmit = async (data: ProductFormValues) => {
+    if (uploadedImages.length === 0) {
+      toast.error('Please upload at least one product image');
+      return;
+    }
+
     setSaving(true);
     try {
       const payload = {
         ...data,
-        images: initialData?.images || [
-          { url: 'https://picsum.photos/seed/product/600/800', alt: data.name }
-        ],
+        images: uploadedImages,
         variants: initialData?.variants || [
           { size: 'Free Size', color: 'Default', colorHex: '#CCCCCC', stock: data.totalStock }
         ]
@@ -170,10 +219,52 @@ export default function ProductForm({ initialData }: ProductFormProps) {
           {/* Images */}
           <div className="bg-white rounded-2xl shadow-card p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Images</h3>
-            <div className="border-2 border-dashed border-gray-300 rounded-xl p-10 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors cursor-pointer">
-              <ImageIcon size={32} className="mb-2 text-gray-400" />
-              <p className="font-medium">Using mock product image</p>
-              <p className="text-xs mt-1">(Image configuration loaded from catalog)</p>
+            
+            {/* Gallery Preview */}
+            {uploadedImages.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6">
+                {uploadedImages.map((img, index) => (
+                  <div key={index} className="relative group aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={img.url} alt={img.alt || 'Product'} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                      title="Delete image"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Upload Area */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+              multiple
+              accept="image/*"
+              className="hidden"
+            />
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors cursor-pointer"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="animate-spin mb-2 text-brand-600" size={32} />
+                  <p className="font-medium text-brand-600">Uploading images...</p>
+                </>
+              ) : (
+                <>
+                  <Upload size={32} className="mb-2 text-gray-400" />
+                  <p className="font-medium">Click to upload product images</p>
+                  <p className="text-xs mt-1 text-gray-400">Supports JPG, PNG, WEBP (multiple allowed)</p>
+                </>
+              )}
             </div>
           </div>
         </div>

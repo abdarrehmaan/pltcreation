@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Save, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Save, X, Image as ImageIcon, Loader2, Trash2, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+import { supabase } from '@/lib/supabase';
 
 const categorySchema = z.object({
   name: z.string().min(2, 'Name is required'),
@@ -21,6 +22,9 @@ type CategoryFormValues = z.infer<typeof categorySchema>;
 export default function CategoryForm({ initialData }: { initialData?: any }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string>(initialData?.image || '');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { register, handleSubmit, formState: { errors } } = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
@@ -29,16 +33,59 @@ export default function CategoryForm({ initialData }: { initialData?: any }) {
     },
   });
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    try {
+      const file = files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `categories/${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from('products')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('products')
+        .getPublicUrl(filePath);
+
+      setImageUrl(publicUrl);
+      toast.success('Category banner uploaded successfully!');
+    } catch (err: any) {
+      console.error('Upload error:', err);
+      toast.error(`Upload failed: ${err.message}. Make sure you created a public bucket named "products" in Supabase!`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = () => {
+    setImageUrl('');
+  };
+
   const onSubmit = async (data: CategoryFormValues) => {
     setSaving(true);
     try {
+      const payload = {
+        ...data,
+        image: imageUrl || null,
+      };
+
       const url = initialData ? `/api/admin/categories/${initialData.id}` : '/api/admin/categories';
       const method = initialData ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
 
       const json = await res.json();
@@ -66,7 +113,7 @@ export default function CategoryForm({ initialData }: { initialData?: any }) {
           <Link href="/admin/categories" className="btn-ghost">
             <X size={16} /> Cancel
           </Link>
-          <button type="submit" disabled={saving} className="btn-primary py-2 px-6 flex items-center gap-2">
+          <button type="submit" disabled={saving || uploading} className="btn-primary py-2 px-6 flex items-center gap-2">
             {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
             Save Category
           </button>
@@ -101,10 +148,49 @@ export default function CategoryForm({ initialData }: { initialData?: any }) {
         <div className="space-y-6">
           <div className="bg-white rounded-2xl shadow-card p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Category Image</h3>
-            <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors cursor-pointer">
-              <ImageIcon size={32} className="mb-2 text-gray-400" />
-              <p className="font-medium text-sm">Upload Image</p>
-            </div>
+            
+            {/* Image Preview */}
+            {imageUrl ? (
+              <div className="relative group rounded-xl overflow-hidden border border-gray-200 bg-gray-50 mb-4 aspect-[2/1]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={imageUrl} alt="Category Banner" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                  title="Remove image"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ) : (
+              <>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 className="animate-spin mb-2 text-brand-600" size={24} />
+                      <p className="font-medium text-sm text-brand-600">Uploading banner...</p>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={24} className="mb-2 text-gray-400" />
+                      <p className="font-medium text-sm">Upload Banner Image</p>
+                      <p className="text-xs mt-1 text-gray-400">Supports JPG, PNG, WEBP</p>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="bg-white rounded-2xl shadow-card p-6">
