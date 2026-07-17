@@ -5,8 +5,10 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
 import { Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '@/features/auth/store';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { user } = useAuthStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -16,11 +18,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     const authStatus = sessionStorage.getItem('admin_authenticated');
-    if (authStatus === 'true') {
+    if (authStatus === 'true' || user?.role === 'ADMIN') {
       setIsAuthenticated(true);
     }
     setChecking(false);
-  }, []);
+  }, [user]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
