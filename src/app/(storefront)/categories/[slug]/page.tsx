@@ -47,8 +47,9 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
   const category = await prisma.category.findUnique({
-    where: { slug },
+    where: { slug: decodedSlug },
   });
   if (!category) return {};
   return {
@@ -59,9 +60,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
   
   const category = await prisma.category.findUnique({
-    where: { slug },
+    where: { slug: decodedSlug },
   });
 
   if (!category) {
@@ -76,6 +78,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     include: {
       images: true,
       category: { select: { name: true } },
+      variants: true,
     },
   });
 
@@ -91,6 +94,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     isBestSeller: p.isBestSeller,
     category: { name: p.category.name },
     images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
+    variants: p.variants.map((v) => ({
+      id: v.id,
+      size: v.size,
+      color: v.color,
+      colorHex: v.colorHex || undefined,
+      stock: v.stock,
+    })),
   }));
 
   const bannerImage = category.image || defaultMeta[slug]?.image || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=80';

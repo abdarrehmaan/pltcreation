@@ -44,9 +44,12 @@ export default function ProductDetailClient({
   product: Product;
   relatedProducts: Product[];
 }) {
+  // Find first variant that is in stock, or fallback to the first variant
+  const initialVariant = product.variants?.find((v) => v.stock > 0) || product.variants?.[0];
+
   const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(initialVariant?.size || null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(initialVariant?.color || null);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'fabric' | 'reviews'>('description');
 
@@ -55,13 +58,65 @@ export default function ProductDetailClient({
   const wishlisted = isInWishlist(product.id);
 
   const discount = product.comparePrice ? calculateDiscount(product.price, product.comparePrice) : 0;
-  const images = product.images?.length ? product.images : [{ url: `https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80`, alt: product.name }];
+  
   const sizes = [...new Set((product.variants || []).map((v) => v.size))];
   const colors = [...new Set((product.variants || []).map((v) => v.color))];
 
+  // Filter images based on selected color
+  const filteredImages = React.useMemo(() => {
+    if (!product.images || product.images.length === 0) {
+      return [{ url: `https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80`, alt: product.name }];
+    }
+    
+    if (selectedColor) {
+      const colorImages = product.images.filter(
+        (img: any) => img.color && img.color.toLowerCase() === selectedColor.toLowerCase()
+      );
+      if (colorImages.length > 0) {
+        // Show color-specific images first, then common images (images with no color assigned)
+        const commonImages = product.images.filter((img: any) => !img.color);
+        return [...colorImages, ...commonImages];
+      }
+    }
+    
+    return product.images;
+  }, [product.images, selectedColor, product.name]);
+
+  const images = filteredImages;
+
+  // Selected variant must match both selected size and color exactly
   const selectedVariant = product.variants?.find(
-    (v) => (!selectedSize || v.size === selectedSize) && (!selectedColor || v.color === selectedColor)
+    (v) => v.size === selectedSize && v.color === selectedColor
   );
+
+  const handleColorSelect = (color: string) => {
+    setSelectedColor(color);
+    setSelectedImage(0); // Reset main image to the first image of the new color
+    
+    // Check if there is a variant with the new color and the current size
+    const exists = product.variants?.some((v) => v.color === color && v.size === selectedSize);
+    if (!exists) {
+      // Select the first size available for the new color (preferring in stock)
+      const firstAvailable = product.variants?.find((v) => v.color === color && v.stock > 0) || product.variants?.find((v) => v.color === color);
+      if (firstAvailable) {
+        setSelectedSize(firstAvailable.size);
+      }
+    }
+  };
+
+  const handleSizeSelect = (size: string) => {
+    setSelectedSize(size);
+    
+    // Check if there is a variant with the new size and the current color
+    const exists = product.variants?.some((v) => v.size === size && v.color === selectedColor);
+    if (!exists) {
+      // Select the first color available for the new size (preferring in stock)
+      const firstAvailable = product.variants?.find((v) => v.size === size && v.stock > 0) || product.variants?.find((v) => v.size === size);
+      if (firstAvailable) {
+        setSelectedColor(firstAvailable.color);
+      }
+    }
+  };
 
   const stockAvailable = selectedVariant ? selectedVariant.stock : product.totalStock;
   const canAddToCart = stockAvailable > 0;
@@ -75,7 +130,7 @@ export default function ProductDetailClient({
         slug: product.slug,
         price: product.price,
         comparePrice: product.comparePrice,
-        image: images[0].url,
+        image: images[0]?.url || product.images?.[0]?.url || `https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80`,
       },
       selectedVariant ? {
         id: selectedVariant.id,
@@ -216,7 +271,7 @@ export default function ProductDetailClient({
                     return (
                       <button
                         key={color}
-                        onClick={() => setSelectedColor(color === selectedColor ? null : color)}
+                        onClick={() => handleColorSelect(color)}
                         className={cn(
                           'w-8 h-8 rounded-full border-2 transition-all flex-shrink-0 hover:scale-110',
                           selectedColor === color ? 'border-brand-600 scale-110 shadow-brand' : 'border-transparent'
@@ -241,18 +296,22 @@ export default function ProductDetailClient({
                 <div className="flex gap-2 flex-wrap">
                   {sizes.map((size) => {
                     const variantForSize = product.variants?.find(
-                      (v) => v.size === size && (!selectedColor || v.color === selectedColor)
+                      (v) => v.size === size && v.color === selectedColor
                     );
-                    const outOfStock = variantForSize?.stock === 0;
+                    const isOutOfStockForSelectedColor = variantForSize ? variantForSize.stock === 0 : true;
+                    const isCompletelyOutOfStock = !product.variants?.some((v) => v.size === size && v.stock > 0);
+
                     return (
                       <button
                         key={size}
-                        onClick={() => !outOfStock && setSelectedSize(size === selectedSize ? null : size)}
-                        disabled={outOfStock}
+                        onClick={() => handleSizeSelect(size)}
+                        disabled={isCompletelyOutOfStock}
                         className={cn(
                           'min-w-[2.75rem] h-10 px-3 rounded-xl text-sm font-semibold border-2 transition-all',
-                          outOfStock
+                          isCompletelyOutOfStock
                             ? 'border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50 line-through'
+                            : isOutOfStockForSelectedColor
+                            ? 'border-gray-250 text-gray-400 bg-gray-50/50 line-through hover:border-brand-300'
                             : selectedSize === size
                             ? 'border-brand-600 bg-brand-50 text-brand-700'
                             : 'border-gray-200 text-gray-700 hover:border-brand-300'

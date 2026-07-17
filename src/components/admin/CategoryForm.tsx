@@ -19,6 +19,16 @@ const categorySchema = z.object({
 
 type CategoryFormValues = z.infer<typeof categorySchema>;
 
+const slugify = (text: string) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-');
+};
+
 export default function CategoryForm({ initialData }: { initialData?: any }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -76,6 +86,7 @@ export default function CategoryForm({ initialData }: { initialData?: any }) {
     try {
       const payload = {
         ...data,
+        slug: slugify(data.slug),
         image: imageUrl || null,
       };
 

@@ -26,10 +26,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Name and slug are required' }, { status: 400 });
     }
 
+    const sanitizedSlug = slug.toString().toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-');
+
     const collection = await prisma.collection.create({
       data: {
         name,
-        slug,
+        slug: sanitizedSlug,
         description: description || '',
         bannerImage: bannerImage || '',
         isActive: isActive ?? true,

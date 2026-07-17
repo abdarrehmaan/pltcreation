@@ -25,7 +25,7 @@ export async function GET(
       ...product,
       price: Number(product.price),
       comparePrice: product.comparePrice ? Number(product.comparePrice) : undefined,
-      images: product.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
+      images: product.images.map((img) => ({ url: img.url, alt: img.alt || '', color: img.color || '' })),
       variants: product.variants.map((v) => ({
         size: v.size,
         color: v.color,
@@ -65,13 +65,15 @@ export async function PUT(
       variants,
     } = body;
 
+    const sanitizedSlug = slug ? slug.toString().toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-') : undefined;
+
     const updatedProduct = await prisma.$transaction(async (tx: any) => {
       // 1. Update basic product details
       const product = await tx.product.update({
         where: { id },
         data: {
           name,
-          slug,
+          slug: sanitizedSlug,
           sku,
           description: description || '',
           categoryId,
@@ -94,6 +96,7 @@ export async function PUT(
             url: img.url,
             alt: img.alt || name,
             sortOrder: idx,
+            color: img.color || null,
           })),
         });
       }

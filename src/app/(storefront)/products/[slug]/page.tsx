@@ -13,8 +13,9 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
   const product = await prisma.product.findUnique({
-    where: { slug },
+    where: { slug: decodedSlug },
     select: { name: true, price: true },
   });
   if (!product) return {};
@@ -26,9 +27,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  const decodedSlug = decodeURIComponent(slug);
   
   const dbProduct = await prisma.product.findUnique({
-    where: { slug },
+    where: { slug: decodedSlug },
     include: {
       category: true,
       images: { orderBy: { sortOrder: 'asc' } },
@@ -81,6 +83,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     include: {
       category: { select: { name: true } },
       images: { orderBy: { sortOrder: 'asc' } },
+      variants: true,
     },
   });
 
@@ -96,6 +99,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     isBestSeller: p.isBestSeller,
     category: { name: p.category.name },
     images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
+    variants: p.variants.map((v) => ({
+      id: v.id,
+      size: v.size,
+      color: v.color,
+      colorHex: v.colorHex || undefined,
+      stock: v.stock,
+    })),
     avgRating: 4.8,
   }));
 

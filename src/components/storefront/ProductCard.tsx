@@ -18,7 +18,7 @@ interface Product {
   comparePrice?: number;
   images?: { url: string; alt?: string }[];
   category?: { name: string };
-  variants?: { size: string; color: string; colorHex?: string; stock: number }[];
+  variants?: { id?: string; size: string; color: string; colorHex?: string; stock: number }[];
   isNewArrival?: boolean;
   isBestSeller?: boolean;
   isTrending?: boolean;
@@ -48,6 +48,22 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Quick Add: find first variant in stock, or default to first variant
+    let selectedVariant = undefined;
+    if (product.variants && product.variants.length > 0) {
+      const firstAvailable = product.variants.find((v) => v.stock > 0) || product.variants[0];
+      if (firstAvailable) {
+        selectedVariant = {
+          id: firstAvailable.id || '',
+          size: firstAvailable.size,
+          color: firstAvailable.color,
+          colorHex: firstAvailable.colorHex,
+          stock: firstAvailable.stock,
+        };
+      }
+    }
+
     addItem(
       {
         id: product.id,
@@ -57,7 +73,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         comparePrice: product.comparePrice,
         image: mainImage,
       },
-      undefined,
+      selectedVariant,
       1
     );
     toast.success(`${product.name} added to cart!`);

@@ -62,6 +62,7 @@ export default async function ProductsPage({
     include: {
       category: { select: { name: true } },
       images: { orderBy: { sortOrder: 'asc' } },
+      variants: true,
     },
   });
 
@@ -77,6 +78,13 @@ export default async function ProductsPage({
     isTrending: p.isTrending,
     category: { name: p.category.name },
     images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
+    variants: p.variants.map((v) => ({
+      id: v.id,
+      size: v.size,
+      color: v.color,
+      colorHex: v.colorHex || undefined,
+      stock: v.stock,
+    })),
     avgRating: 4.8,
   }));
 

@@ -16,6 +16,7 @@ export default async function NewArrivalsPage() {
     include: {
       category: { select: { name: true } },
       images: { orderBy: { sortOrder: 'asc' } },
+      variants: true,
     },
     orderBy: {
       createdAt: 'desc',
@@ -33,6 +34,13 @@ export default async function NewArrivalsPage() {
     isBestSeller: p.isBestSeller,
     category: { name: p.category.name },
     images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
+    variants: p.variants.map((v) => ({
+      id: v.id,
+      size: v.size,
+      color: v.color,
+      colorHex: v.colorHex || undefined,
+      stock: v.stock,
+    })),
     avgRating: 4.8,
   }));
 

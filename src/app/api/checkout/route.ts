@@ -95,6 +95,13 @@ export async function POST(request: Request) {
           }
         }
 
+        // Deduct product total stock
+        const newProductStock = Math.max(0, product.totalStock - item.quantity);
+        await tx.product.update({
+          where: { id: item.product.id },
+          data: { totalStock: newProductStock },
+        });
+
         // Create OrderItem record
         await tx.orderItem.create({
           data: {

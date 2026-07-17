@@ -66,11 +66,13 @@ export async function POST(request: Request) {
       );
     }
 
+    const sanitizedSlug = slug.toString().toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-');
+
     const createdProduct = await prisma.$transaction(async (tx: any) => {
       const product = await tx.product.create({
         data: {
           name,
-          slug,
+          slug: sanitizedSlug,
           sku,
           description: description || '',
           categoryId,
@@ -92,6 +94,7 @@ export async function POST(request: Request) {
             url: img.url,
             alt: img.alt || name,
             sortOrder: idx,
+            color: img.color || null,
           })),
         });
       }

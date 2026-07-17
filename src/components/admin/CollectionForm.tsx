@@ -19,6 +19,16 @@ const collectionSchema = z.object({
 
 type CollectionFormValues = z.infer<typeof collectionSchema>;
 
+const slugify = (text: string) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w\-]+/g, '')
+    .replace(/\-\-+/g, '-');
+};
+
 export default function CollectionForm({ initialData }: { initialData?: any }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -76,6 +86,7 @@ export default function CollectionForm({ initialData }: { initialData?: any }) {
     try {
       const payload = {
         ...data,
+        slug: slugify(data.slug),
         bannerImage: imageUrl || null,
       };
 
