@@ -29,7 +29,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const { name, slug, description, isActive } = await request.json();
+    const { name, slug, description, image, isActive } = await request.json();
 
     if (!name || !slug) {
       return NextResponse.json({ error: 'Name and slug are required' }, { status: 400 });
@@ -43,6 +43,7 @@ export async function PUT(
         name,
         slug: sanitizedSlug,
         description: description || '',
+        image: image || null,
         isActive: isActive ?? true,
       },
     });

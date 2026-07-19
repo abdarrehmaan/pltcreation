@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import ProductGrid from '@/components/storefront/ProductGrid';
+import ProductSortSelect from '@/components/storefront/ProductSortSelect';
 import { prisma } from '@/lib/prisma';
 import { SlidersHorizontal, Search } from 'lucide-react';
 import Link from 'next/link';
@@ -30,6 +31,7 @@ export default async function ProductsPage({
 
   const where: any = {
     isActive: true,
+    isDeleted: false,
   };
 
   if (search) {
@@ -125,17 +127,7 @@ export default async function ProductsPage({
               <SlidersHorizontal size={16} />
               Filters
             </button>
-            <select
-              className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200"
-              defaultValue={sort}
-              {...{
-                onchange: "const url = new URL(window.location.href); url.searchParams.set('sort', this.value); url.searchParams.delete('page'); window.location.href = url.pathname + url.search;"
-              }}
-            >
-              {sortOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ))}
-            </select>
+            <ProductSortSelect sortOptions={sortOptions} defaultValue={sort} />
           </div>
         </div>
 

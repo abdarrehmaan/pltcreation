@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Loader2, Image as ImageIcon, X, Save } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { formatPrice } from '@/lib/utils';
 
@@ -11,6 +12,17 @@ export default function AdminOffersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'offers' | 'coupons'>('offers');
+
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+
+  useEffect(() => {
+    if (tabParam === 'coupons') {
+      setActiveTab('coupons');
+    } else if (tabParam === 'offers') {
+      setActiveTab('offers');
+    }
+  }, [tabParam]);
   
   // Modal state
   const [isOpen, setIsOpen] = useState(false);

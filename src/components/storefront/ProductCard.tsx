@@ -96,7 +96,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
   return (
     <div 
-      className="group flex flex-col relative transition-all duration-500 ease-apple hover:-translate-y-1"
+      className="card-product group flex flex-col relative transition-all duration-500 ease-apple hover:-translate-y-1"
       onMouseEnter={() => {
         setIsHovered(true);
         if (images[1]) setImageIdx(1);

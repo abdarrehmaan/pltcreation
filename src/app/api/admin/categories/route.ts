@@ -33,7 +33,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { name, slug, description, isActive } = await request.json();
+    const { name, slug, description, image, isActive } = await request.json();
 
     if (!name || !slug) {
       return NextResponse.json({ error: 'Name and slug are required' }, { status: 400 });
@@ -46,6 +46,7 @@ export async function POST(request: Request) {
         name,
         slug: sanitizedSlug,
         description: description || '',
+        image: image || null,
         isActive: isActive ?? true,
       },
     });

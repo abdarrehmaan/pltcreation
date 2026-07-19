@@ -247,6 +247,7 @@ model Product {
   costPrice       Decimal? @db.Decimal(10, 2)   // for profit tracking
   
   isActive        Boolean  @default(true)
+  isDeleted       Boolean  @default(false)
   isFeatured      Boolean  @default(false)
   isNewArrival    Boolean  @default(false)
   isBestSeller    Boolean  @default(false)

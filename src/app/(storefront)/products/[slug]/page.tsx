@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function generateStaticParams() {
   const products = await prisma.product.findMany({
-    where: { isActive: true },
+    where: { isActive: true, isDeleted: false },
     select: { slug: true },
   });
   return products.map((p) => ({ slug: p.slug }));
@@ -16,9 +16,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const decodedSlug = decodeURIComponent(slug);
   const product = await prisma.product.findUnique({
     where: { slug: decodedSlug },
-    select: { name: true, price: true },
+    select: { name: true, price: true, isDeleted: true },
   });
-  if (!product) return {};
+  if (!product || product.isDeleted) return {};
   return {
     title: product.name,
     description: `Buy ${product.name} online at PLT Creation. Premium ethnic wear starting from ₹${Number(product.price).toLocaleString('en-IN')}.`,
@@ -39,7 +39,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     },
   });
 
-  if (!dbProduct || !dbProduct.isActive) {
+  if (!dbProduct || !dbProduct.isActive || dbProduct.isDeleted) {
     notFound();
   }
 
@@ -55,6 +55,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     name: dbProduct.name,
     slug: dbProduct.slug,
     sku: dbProduct.sku,
+    description: dbProduct.description || '',
     price: Number(dbProduct.price),
     comparePrice: dbProduct.comparePrice ? Number(dbProduct.comparePrice) : undefined,
     totalStock: dbProduct.totalStock,

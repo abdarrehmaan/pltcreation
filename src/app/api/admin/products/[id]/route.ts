@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 
 export async function GET(
   request: Request,
@@ -119,6 +120,10 @@ export async function PUT(
       return product;
     });
 
+    revalidatePath('/products');
+    revalidatePath(`/products/${updatedProduct.slug}`);
+    revalidatePath('/');
+
     return NextResponse.json({ success: true, product: updatedProduct });
   } catch (error: any) {
     console.error('Failed to update product:', error);
@@ -133,9 +138,26 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    await prisma.product.delete({
+    const product = await prisma.product.findUnique({
       where: { id },
     });
+
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    }
+
+    await prisma.product.update({
+      where: { id },
+      data: {
+        isDeleted: true,
+        isActive: false,
+        slug: `${product.slug}-deleted-${Date.now()}`,
+      },
+    });
+
+    revalidatePath('/products');
+    revalidatePath(`/products/${product.slug}`);
+    revalidatePath('/');
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

@@ -102,39 +102,41 @@ export default function HeroBanner() {
     <section
       id="hero-banner"
       ref={containerRef}
-      className="relative w-full min-h-screen overflow-hidden bg-gray-950 flex items-center pt-20"
+      className="relative w-full md:min-h-screen overflow-hidden bg-gray-950 flex flex-col md:flex-row md:items-center pt-16 md:pt-20"
       aria-label="Hero banner"
       onMouseMove={handleMouseMove}
       onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
     >
-      {/* Immersive Full-Screen Background Images with Parallax */}
-      <AnimatePresence custom={direction} initial={false}>
-        <motion.div
-          key={slide.id}
-          className="absolute inset-[-5%] z-0"
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
-          style={{ x: parallaxX, y: parallaxY }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
-        >
-          <Image
-            src={slide.image}
-            alt={slide.title}
-            fill
-            className="object-cover object-center"
-            priority
-            sizes="100vw"
-            unoptimized={slide.image.startsWith('/')}
-          />
-          {/* Gradient Overlays for Readability and Luxury feel */}
-          <div className={`absolute inset-0 bg-gradient-to-${slide.align === 'left' ? 'r' : 'l'} from-gray-900/90 via-gray-900/50 to-transparent z-10`} />
-          <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 via-transparent to-gray-900/40 z-10" />
-        </motion.div>
-      </AnimatePresence>
+      {/* Immersive Background Images with Parallax */}
+      <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] md:absolute md:inset-[-5%] md:w-auto md:h-auto z-0 shrink-0 overflow-hidden">
+        <AnimatePresence custom={direction} initial={false}>
+          <motion.div
+            key={slide.id}
+            className="absolute inset-0 md:inset-[-5%]"
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            style={{ x: parallaxX, y: parallaxY }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <Image
+              src={slide.image}
+              alt={slide.title}
+              fill
+              className="object-cover object-center"
+              priority
+              sizes="100vw"
+              unoptimized={slide.image.startsWith('/')}
+            />
+            {/* Gradient Overlays for Readability and Luxury feel */}
+            <div className={`absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent md:bg-gradient-to-${slide.align === 'left' ? 'r' : 'l'} md:from-gray-900/90 md:via-gray-900/50 md:to-transparent z-10`} />
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 via-transparent to-gray-900/40 z-10 hidden md:block" />
+          </motion.div>
+        </AnimatePresence>
+      </div>
 
       {/* Content */}
-      <div className={`relative z-20 container-plt w-full pt-10 pb-20 flex ${slide.align === 'left' ? 'justify-start' : 'justify-end'}`}>
+      <div className={`relative z-20 container-plt w-full pt-6 pb-20 md:py-20 flex ${slide.align === 'left' ? 'justify-start' : 'justify-end'} bg-gray-950 md:bg-transparent`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.id}
@@ -142,14 +144,14 @@ export default function HeroBanner() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -30 }}
             transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-            className={`max-w-2xl ${slide.align === 'left' ? 'text-left' : 'text-right'}`}
+            className={`max-w-2xl ${slide.align === 'left' ? 'text-left md:text-left' : 'text-left md:text-right'} w-full`}
           >
             {/* Tag */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-bold uppercase tracking-[0.2em]"
+              className="inline-flex items-center gap-2 px-4 py-1.5 mb-4 sm:mb-6 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-bold uppercase tracking-[0.2em]"
             >
               <Sparkles size={12} className="text-brand-400" />
               {slide.tag}
@@ -160,7 +162,7 @@ export default function HeroBanner() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="font-display text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-[1.1] sm:leading-[1.05] mb-4 sm:mb-6 tracking-tight drop-shadow-2xl"
+              className="font-display text-2xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-[1.2] sm:leading-[1.05] mb-3 sm:mb-6 tracking-tight drop-shadow-2xl"
             >
               {slide.title}
             </motion.h1>
@@ -170,7 +172,7 @@ export default function HeroBanner() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className={`text-gray-300 text-sm sm:text-lg md:text-xl leading-relaxed mb-6 sm:mb-10 max-w-lg ${slide.align === 'left' ? 'mr-auto' : 'ml-auto'} font-light drop-shadow-md`}
+              className={`text-gray-300 text-xs sm:text-lg md:text-xl leading-relaxed mb-6 sm:mb-10 max-w-lg ${slide.align === 'left' ? 'mr-auto' : 'md:ml-auto'} font-light drop-shadow-md`}
             >
               {slide.subtitle}
             </motion.p>
@@ -180,7 +182,7 @@ export default function HeroBanner() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className={`flex flex-col sm:flex-row gap-3 sm:gap-5 items-center ${slide.align === 'left' ? 'justify-start' : 'justify-end'}`}
+              className={`flex flex-col sm:flex-row gap-3 sm:gap-5 items-center ${slide.align === 'left' ? 'justify-start' : 'md:justify-end'}`}
             >
               <Link
                 href={slide.ctaHref}
@@ -197,14 +199,12 @@ export default function HeroBanner() {
               </Link>
             </motion.div>
 
-
-
             {/* Social Proof */}
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8 }}
-              className={`mt-12 flex items-center gap-4 border-t border-white/20 pt-6 max-w-md ${slide.align === 'left' ? 'mr-auto' : 'ml-auto'}`}
+              className={`mt-8 sm:mt-12 flex items-center gap-4 border-t border-white/20 pt-6 max-w-md ${slide.align === 'left' ? 'mr-auto' : 'md:ml-auto'}`}
             >
                <div className="flex -space-x-2">
                  {[1, 2, 3, 4].map((i) => (
@@ -213,7 +213,7 @@ export default function HeroBanner() {
                    </div>
                  ))}
                </div>
-               <div className="flex flex-col">
+               <div className="flex flex-col text-left">
                  <div className="flex items-center gap-1 text-gold-400">
                    {[...Array(5)].map((_, i) => <Star key={i} size={12} fill="currentColor" />)}
                  </div>

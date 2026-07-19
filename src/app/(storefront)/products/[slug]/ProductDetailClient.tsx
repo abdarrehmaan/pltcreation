@@ -27,6 +27,7 @@ interface Product {
   sku: string;
   price: number;
   comparePrice?: number;
+  description?: string;
   totalStock: number;
   isNewArrival?: boolean;
   isBestSeller?: boolean;
@@ -445,15 +446,21 @@ export default function ProductDetailClient({
           </div>
 
           {activeTab === 'description' && (
-            <div className="prose max-w-none text-gray-600 text-sm leading-relaxed">
-              <p>This exquisite piece from PLT Creation's premium collection showcases the finest craftsmanship and attention to detail. Made with carefully selected fabrics and embellishments, it's designed to make you feel confident and beautiful for every occasion.</p>
-              <ul className="mt-4 space-y-2">
-                <li>✓ Premium quality fabric with excellent finish</li>
-                <li>✓ Carefully crafted embroidery/detailing</li>
-                <li>✓ Comfortable fit for all-day wear</li>
-                <li>✓ Suitable for festive, casual, and party occasions</li>
-                <li>✓ Includes matching dupatta/accessories as shown</li>
-              </ul>
+            <div className="prose max-w-none text-gray-600 text-sm leading-relaxed whitespace-pre-line">
+              {product.description ? (
+                <p>{product.description}</p>
+              ) : (
+                <>
+                  <p>This exquisite piece from PLT Creation's premium collection showcases the finest craftsmanship and attention to detail. Made with carefully selected fabrics and embellishments, it's designed to make you feel confident and beautiful for every occasion.</p>
+                  <ul className="mt-4 space-y-2">
+                    <li>✓ Premium quality fabric with excellent finish</li>
+                    <li>✓ Carefully crafted embroidery/detailing</li>
+                    <li>✓ Comfortable fit for all-day wear</li>
+                    <li>✓ Suitable for festive, casual, and party occasions</li>
+                    <li>✓ Includes matching dupatta/accessories as shown</li>
+                  </ul>
+                </>
+              )}
             </div>
           )}
 

@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Package, Tag, Grid3X3, ShoppingCart,
   Users, TicketPercent, Gift, Star, RotateCcw,
-  BarChart3, Settings, LogOut, ChevronLeft, ChevronRight, Sparkles, X
+  BarChart3, Settings, LogOut, ChevronLeft, ChevronRight, Sparkles, X, Heart
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -21,6 +21,7 @@ const navSections = [
     label: 'Catalogue',
     items: [
       { label: 'Products', href: '/admin/products', icon: Package },
+      { label: 'Saved Products', href: '/admin/saved-products', icon: Heart },
       { label: 'Categories', href: '/admin/categories', icon: Grid3X3 },
       { label: 'Collections', href: '/admin/collections', icon: Tag },
       { label: 'Offers', href: '/admin/offers', icon: Gift },
