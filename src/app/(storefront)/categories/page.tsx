@@ -39,7 +39,7 @@ export default async function CategoriesPage() {
             <Link
               key={cat.id}
               href={`/categories/${cat.slug}`}
-              className="group relative h-[300px] rounded-2xl overflow-hidden block"
+              className="group relative aspect-[3/4] rounded-2xl overflow-hidden block"
             >
               <img
                 src={cat.image || defaultImages[cat.slug] || 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?auto=format&fit=crop&q=80&w=800'}
