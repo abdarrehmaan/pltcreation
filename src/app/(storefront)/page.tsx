@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import HeroBanner from '@/components/storefront/HeroBanner';
 import FeaturedCategories from '@/components/storefront/FeaturedCategories';
 import ProductGrid from '@/components/storefront/ProductGrid';
+
+export const dynamic = 'force-dynamic';
 import SectionHeader from '@/components/storefront/SectionHeader';
 import PremiumTrust from '@/components/storefront/PremiumTrust';
 import BrandStory from '@/components/storefront/BrandStory';
@@ -67,6 +69,23 @@ export default async function HomePage() {
     bannerImage: c.bannerImage || 'https://picsum.photos/seed/collection/1200/800',
   }));
 
+  const categoriesDb = await prisma.category.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: 'asc' },
+    include: {
+      _count: {
+        select: { products: true },
+      },
+    },
+  });
+
+  const categories = categoriesDb.map((c) => ({
+    name: c.name,
+    slug: c.slug,
+    image: c.image || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80',
+    count: `${c._count.products} Styles`,
+  }));
+
   return (
     <>
       {/* Hero */}
@@ -96,7 +115,7 @@ export default async function HomePage() {
       <CollectionsBanner collections={collections} />
 
       {/* Featured Categories */}
-      <FeaturedCategories />
+      <FeaturedCategories categories={categories} />
 
       {/* Trending & Best Sellers */}
       <section id="trending" className="py-12 md:py-24 bg-transparent border-t border-white/10">

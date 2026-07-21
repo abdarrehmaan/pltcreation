@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import ProductGrid from '@/components/storefront/ProductGrid';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'New Arrivals',
   description: 'Shop the latest new arrivals in women\'s ethnic wear at PLT Creation. Fresh Chikankari, Kurtis, Co-ord Sets and more.',

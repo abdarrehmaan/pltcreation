@@ -23,7 +23,6 @@ const paymentMethods = [
   { id: 'card', label: 'Credit/Debit Card', icon: CreditCard, desc: 'Visa, Mastercard, RuPay' },
   { id: 'netbanking', label: 'Net Banking', icon: Building2, desc: 'All major banks' },
   { id: 'cod', label: 'Cash on Delivery', icon: Truck, desc: 'Pay when delivered' },
-  { id: 'takeaway', label: 'Takeaway', icon: Store, desc: '*30% prepaid for order value' },
   { id: 'exchange', label: 'Exchange', icon: RefreshCcw, desc: 'Exchange an existing item' },
 ];
 
@@ -53,7 +52,7 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
-  const prepaidDiscount = !['cod', 'takeaway', 'exchange'].includes(paymentMethod) ? Math.round(total * 0.05) : 0;
+  const prepaidDiscount = !['cod', 'exchange'].includes(paymentMethod) ? Math.round(total * 0.05) : 0;
   const finalTotal = total - prepaidDiscount;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -207,7 +206,7 @@ export default function CheckoutPage() {
                         <p className="text-sm font-semibold text-gray-900">{label}</p>
                         <p className="text-xs text-gray-500">{desc}</p>
                       </div>
-                      {!['cod', 'takeaway', 'exchange'].includes(id) && (
+                      {!['cod', 'exchange'].includes(id) && (
                         <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">5% OFF</span>
                       )}
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
@@ -219,7 +218,7 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                {!['cod', 'takeaway', 'exchange'].includes(paymentMethod) && (
+                {!['cod', 'exchange'].includes(paymentMethod) && (
                   <div className="mt-4 p-3 bg-emerald-50 rounded-xl flex items-center gap-2">
                     <Shield size={14} className="text-emerald-600" />
                     <p className="text-xs text-emerald-700 font-medium">
@@ -227,11 +226,11 @@ export default function CheckoutPage() {
                     </p>
                   </div>
                 )}
-                {['cod', 'takeaway'].includes(paymentMethod) && (
+                {paymentMethod === 'cod' && (
                   <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
                     <Shield size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
                     <p className="text-xs text-amber-800 font-medium">
-                      For {paymentMethod === 'cod' ? 'COD' : 'Takeaway'} orders, a 30% advance payment ({formatPrice(finalTotal * 0.30)}) is required to confirm your order. The remaining 70% ({formatPrice(finalTotal * 0.70)}) will be collected at the time of {paymentMethod === 'cod' ? 'delivery' : 'pickup'}.
+                      For COD orders, a 30% advance payment ({formatPrice(finalTotal * 0.30)}) is required to confirm your order. The remaining 70% ({formatPrice(finalTotal * 0.70)}) will be collected at the time of delivery.
                     </p>
                   </div>
                 )}
@@ -263,29 +262,37 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                {/* Totals */}
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between text-gray-600">
-                    <span>Subtotal</span><span>{formatPrice(subtotal)}</span>
-                  </div>
-                  {couponDiscount > 0 && (
-                    <div className="flex justify-between text-emerald-600">
-                      <span>Coupon ({couponCode})</span><span>-{formatPrice(couponDiscount)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-gray-600">
-                    <span>Shipping</span>
-                    <span className={shipping === 0 ? 'text-emerald-600 font-semibold' : ''}>{shipping === 0 ? 'FREE' : formatPrice(shipping)}</span>
-                  </div>
-                  {prepaidDiscount > 0 && (
-                    <div className="flex justify-between text-emerald-600">
-                      <span>Prepaid Discount (5%)</span><span>-{formatPrice(prepaidDiscount)}</span>
-                    </div>
-                  )}
-                  <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-gray-900 text-lg">
-                    <span>Total</span><span>{formatPrice(finalTotal)}</span>
-                  </div>
-                </div>
+                 {/* Totals */}
+                 <div className="space-y-2.5 text-sm">
+                   <div className="flex justify-between text-gray-650 font-medium">
+                     <span>Product Price (GST Included)</span>
+                     <span>{formatPrice(subtotal - couponDiscount - prepaidDiscount)}</span>
+                   </div>
+                   <div className="flex justify-between text-gray-400 text-xs pl-3">
+                     <span>GST Amount (5% Included)</span>
+                     <span>{formatPrice((subtotal - couponDiscount - prepaidDiscount) * 0.05 / 1.05)}</span>
+                   </div>
+                   {couponDiscount > 0 && (
+                     <div className="flex justify-between text-emerald-600 text-xs pl-3">
+                       <span>Coupon Discount ({couponCode})</span>
+                       <span>-{formatPrice(couponDiscount)}</span>
+                     </div>
+                   )}
+                   {prepaidDiscount > 0 && (
+                     <div className="flex justify-between text-emerald-600 text-xs pl-3">
+                       <span>Prepaid Discount (5%)</span>
+                       <span>-{formatPrice(prepaidDiscount)}</span>
+                     </div>
+                   )}
+                   <div className="flex justify-between text-gray-650 font-medium">
+                     <span>Delivery Charges</span>
+                     <span className={shipping === 0 ? 'text-emerald-600 font-semibold' : ''}>{shipping === 0 ? 'FREE' : formatPrice(shipping)}</span>
+                   </div>
+                   <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-gray-900 text-lg">
+                     <span>Final Payable Amount</span>
+                     <span>{formatPrice(finalTotal)}</span>
+                   </div>
+                 </div>
 
                 <button
                   type="submit"

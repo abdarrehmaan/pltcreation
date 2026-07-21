@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, ShoppingBag, Zap, Star, ChevronRight, Minus, Plus, Shield, Truck, RotateCcw, Share2 } from 'lucide-react';
+import { Heart, ShoppingBag, Zap, Star, ChevronLeft, ChevronRight, Minus, Plus, Shield, Truck, RotateCcw, Share2, X } from 'lucide-react';
 import { useCartStore } from '@/features/cart/store';
 import { useWishlistStore } from '@/features/wishlist/store';
 import { formatPrice, calculateDiscount } from '@/lib/utils';
@@ -33,7 +33,7 @@ interface Product {
   isBestSeller?: boolean;
   avgRating?: number;
   category?: { name: string; slug?: string };
-  images?: { url: string; alt?: string }[];
+  images?: { url: string; alt?: string; color?: string | null }[];
   variants?: Variant[];
   _count?: { reviews: number };
 }
@@ -84,6 +84,37 @@ export default function ProductDetailClient({
   }, [product.images, selectedColor, product.name]);
 
   const images = filteredImages;
+
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxImageIdx, setLightboxImageIdx] = useState(0);
+  const touchStartX = React.useRef<number | null>(null);
+  const touchEndX = React.useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const diff = touchStartX.current - touchEndX.current;
+    const swipeThreshold = 50; // minimum pixels to count as swipe
+
+    if (diff > swipeThreshold) {
+      // Swiped left -> next image
+      setLightboxImageIdx((prev) => (prev + 1) % images.length);
+    } else if (diff < -swipeThreshold) {
+      // Swiped right -> previous image
+      setLightboxImageIdx((prev) => (prev - 1 + images.length) % images.length);
+    }
+
+    // Reset touch variables
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
 
   // Selected variant must match both selected size and color exactly
   const selectedVariant = product.variants?.find(
@@ -187,12 +218,19 @@ export default function ProductDetailClient({
             </div>
 
             {/* Main image */}
-            <div className="relative flex-1 rounded-2xl overflow-hidden bg-gray-50" style={{ aspectRatio: '3/4' }}>
+            <div 
+              onClick={() => {
+                setLightboxImageIdx(selectedImage);
+                setIsLightboxOpen(true);
+              }}
+              className="relative flex-1 rounded-2xl overflow-hidden bg-gray-50 cursor-zoom-in group" 
+              style={{ aspectRatio: '3/4' }}
+            >
               <Image
                 src={images[selectedImage]?.url || images[0].url}
                 alt={images[selectedImage]?.alt || product.name}
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-500 group-hover:scale-102"
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 priority
               />
@@ -551,6 +589,87 @@ export default function ProductDetailClient({
           </div>
         )}
       </div>
+
+      {/* Lightbox Modal */}
+      {isLightboxOpen && (
+        <div 
+          className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex flex-col justify-between p-4 sm:p-6 no-print"
+          role="dialog"
+          aria-modal="true"
+        >
+          {/* Close button */}
+          <div className="flex justify-end w-full">
+            <button 
+              onClick={() => setIsLightboxOpen(false)}
+              className="text-white hover:text-gray-300 transition-colors p-2 rounded-full hover:bg-white/10"
+              aria-label="Close viewer"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          {/* Main content area */}
+          <div className="flex-1 flex items-center justify-center relative w-full select-none">
+            {/* Left Nav */}
+            {images.length > 1 && (
+              <button 
+                onClick={() => setLightboxImageIdx((prev) => (prev - 1 + images.length) % images.length)}
+                className="absolute left-2 sm:left-4 z-10 text-white hover:text-gray-300 transition-colors p-3 rounded-full hover:bg-white/10"
+                aria-label="Previous image"
+              >
+                <ChevronLeft size={36} />
+              </button>
+            )}
+
+            {/* Image display */}
+            <div 
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className="relative w-full h-full max-h-[80vh] flex items-center justify-center"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src={images[lightboxImageIdx]?.url} 
+                alt={images[lightboxImageIdx]?.alt || product.name} 
+                className="max-h-full max-w-full object-contain rounded-lg shadow-2xl transition-all duration-305 select-none pointer-events-none"
+              />
+            </div>
+
+            {/* Right Nav */}
+            {images.length > 1 && (
+              <button 
+                onClick={() => setLightboxImageIdx((prev) => (prev + 1) % images.length)}
+                className="absolute right-2 sm:right-4 z-10 text-white hover:text-gray-300 transition-colors p-3 rounded-full hover:bg-white/10"
+                aria-label="Next image"
+              >
+                <ChevronRight size={36} />
+              </button>
+            )}
+          </div>
+
+          {/* Bottom indicators */}
+          <div className="py-4 text-center text-white/80 text-sm font-medium">
+            {images.length > 1 && (
+              <div className="flex items-center justify-center gap-2 mb-2">
+                {images.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setLightboxImageIdx(i)}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      i === lightboxImageIdx ? 'bg-white w-6' : 'bg-white/40'
+                    }`}
+                    aria-label={`Go to slide ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+            <p>
+              Image {lightboxImageIdx + 1} of {images.length}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

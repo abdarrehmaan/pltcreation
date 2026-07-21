@@ -37,26 +37,6 @@ const slides = [
     ctaHref: '/products',
     align: 'right',
   },
-  {
-    id: 4,
-    image: '/banner4.png',
-    tag: 'Bridal Edit',
-    title: 'The Royal Wedding Trousseau',
-    subtitle: 'Step into a world of regal splendor with our handcrafted bridal couture, designed to make your special day unforgettable.',
-    cta: 'Discover Bridal',
-    ctaHref: '/categories/bridal',
-    align: 'right',
-  },
-  {
-    id: 5,
-    image: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=1600&q=85',
-    tag: 'Limited Edition',
-    title: 'Velvet & Zari Masterpieces',
-    subtitle: 'Embrace the festivities with luxurious velvet suits adorned with intricate vintage zari work.',
-    cta: 'Shop The Collection',
-    ctaHref: '/collections/velvet-edit',
-    align: 'right',
-  },
 ];
 
 export default function HeroBanner() {

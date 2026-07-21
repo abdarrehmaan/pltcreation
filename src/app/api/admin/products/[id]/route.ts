@@ -123,6 +123,8 @@ export async function PUT(
     revalidatePath('/products');
     revalidatePath(`/products/${updatedProduct.slug}`);
     revalidatePath('/');
+    revalidatePath('/best-sellers');
+    revalidatePath('/new-arrivals');
 
     return NextResponse.json({ success: true, product: updatedProduct });
   } catch (error: any) {
@@ -158,6 +160,8 @@ export async function DELETE(
     revalidatePath('/products');
     revalidatePath(`/products/${product.slug}`);
     revalidatePath('/');
+    revalidatePath('/best-sellers');
+    revalidatePath('/new-arrivals');
 
     return NextResponse.json({ success: true });
   } catch (error: any) {

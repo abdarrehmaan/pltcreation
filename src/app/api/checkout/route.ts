@@ -43,6 +43,9 @@ export async function POST(request: Request) {
 
     // Create the order using a transaction
     const order = await prisma.$transaction(async (tx: any) => {
+      // Calculate 5% inclusive GST (taxable amount is total minus shipping charge)
+      const taxAmount = (Number(total) - Number(shippingCharge)) * 0.05 / 1.05;
+
       // 1. Create the main Order
       const newOrder = await tx.order.create({
         data: {
@@ -52,6 +55,7 @@ export async function POST(request: Request) {
           subtotal,
           shippingCharge,
           discount,
+          tax: taxAmount,
           total,
           couponCode,
           couponDiscount,

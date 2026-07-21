@@ -62,7 +62,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     isNewArrival: dbProduct.isNewArrival,
     isBestSeller: dbProduct.isBestSeller,
     category: { name: dbProduct.category.name, slug: dbProduct.category.slug },
-    images: dbProduct.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
+    images: dbProduct.images.map((img) => ({ url: img.url, alt: img.alt || '', color: img.color })),
     variants: dbProduct.variants.map((v) => ({
       id: v.id,
       size: v.size,

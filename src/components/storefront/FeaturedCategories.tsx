@@ -6,51 +6,13 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 
-const categories = [
-  {
-    name: 'Chikankari',
-    slug: 'chikankari',
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80',
-    count: '120+ Styles',
-    color: 'from-rose-900 to-rose-700',
-  },
-  {
-    name: 'Co-ord Sets',
-    slug: 'coord-sets',
-    image: 'https://images.unsplash.com/photo-1608748010899-18f300247112?w=600&auto=format&fit=crop&q=80',
-    count: '85+ Styles',
-    color: 'from-purple-900 to-purple-700',
-  },
-  {
-    name: 'Kurtis',
-    slug: 'kurtis',
-    image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=600&auto=format&fit=crop&q=80',
-    count: '200+ Styles',
-    color: 'from-brand-900 to-brand-700',
-  },
-  {
-    name: 'Stitched Suits',
-    slug: 'stitched-suits',
-    image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&auto=format&fit=crop&q=80',
-    count: '95+ Styles',
-    color: 'from-amber-900 to-amber-700',
-  },
-  {
-    name: 'Unstitched Suits',
-    slug: 'unstitched-suits',
-    image: 'https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=600&auto=format&fit=crop&q=80',
-    count: '60+ Fabrics',
-    color: 'from-teal-900 to-teal-700',
-  },
-  {
-    name: 'Sale',
-    slug: 'sale',
-    image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&auto=format&fit=crop&q=80',
-    count: 'Up to 50% Off',
-    color: 'from-red-900 to-red-700',
-    isSale: true,
-  },
-];
+interface FeaturedCategory {
+  name: string;
+  slug: string;
+  image: string;
+  count: string;
+  isSale?: boolean;
+}
 
 const containerVariants = {
   hidden: {},
@@ -69,7 +31,7 @@ const itemVariants = {
   },
 };
 
-export default function FeaturedCategories() {
+export default function FeaturedCategories({ categories }: { categories: FeaturedCategory[] }) {
   return (
     <section id="featured-categories" className="section-padding bg-transparent">
       <div className="container-plt">

@@ -108,7 +108,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
     >
       {/* Image Container */}
       <div className="relative w-full aspect-[3/4] bg-gray-100 rounded-2xl overflow-hidden mb-4 shadow-sm group-hover:shadow-brand transition-all duration-500 ease-apple">
-        <Link href={`/products/${product.slug}`} aria-label={product.name}>
+        <Link href={`/products/${product.slug}`} aria-label={product.name} className="absolute inset-0 block">
           <Image
             src={mainImage}
             alt={images[imageIdx]?.alt || product.name}

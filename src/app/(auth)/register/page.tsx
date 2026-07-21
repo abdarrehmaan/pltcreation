@@ -49,11 +49,11 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Full Name *</label>
-              <input id="reg-name" name="name" type="text" required value={form.name} onChange={handleChange} placeholder="Your full name" className="input-base bg-blue-50/20 focus:bg-white" />
+              <input id="reg-name" name="name" type="text" required value={form.name} onChange={handleChange} placeholder="e.g. Priya" className="input-base bg-blue-50/20 focus:bg-white" />
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Email Address *</label>
-              <input id="reg-email" name="email" type="email" required value={form.email} onChange={handleChange} placeholder="you@example.com" className="input-base bg-blue-50/20 focus:bg-white" />
+              <input id="reg-email" name="email" type="email" required value={form.email} onChange={handleChange} placeholder="priya@example.com" className="input-base bg-blue-50/20 focus:bg-white" />
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1.5">Phone Number</label>

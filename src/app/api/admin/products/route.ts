@@ -122,6 +122,8 @@ export async function POST(request: Request) {
 
     revalidatePath('/products');
     revalidatePath('/');
+    revalidatePath('/best-sellers');
+    revalidatePath('/new-arrivals');
 
     return NextResponse.json({ success: true, product: createdProduct }, { status: 201 });
   } catch (error: any) {

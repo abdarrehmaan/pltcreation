@@ -563,6 +563,25 @@ h1, h2, h3, .heading-serif {
    ============================================================ */
 @media print {
   .no-print { display: none !important; }
+  
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  
+  .h-screen {
+    height: auto !important;
+  }
+  
+  .overflow-hidden {
+    overflow: visible !important;
+  }
+  
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
 }
 
 /* ============================================================
