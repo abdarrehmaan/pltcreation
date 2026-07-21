@@ -3,13 +3,7 @@ import { notFound } from 'next/navigation';
 import ProductDetailClient from './ProductDetailClient';
 import { prisma } from '@/lib/prisma';
 
-export async function generateStaticParams() {
-  const products = await prisma.product.findMany({
-    where: { isActive: true, isDeleted: false },
-    select: { slug: true },
-  });
-  return products.map((p) => ({ slug: p.slug }));
-}
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;

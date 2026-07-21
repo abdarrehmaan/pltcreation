@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma';
 import { SlidersHorizontal, Search } from 'lucide-react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'All Products',
   description: 'Browse our complete collection of premium women\'s ethnic wear — Chikankari, Kurtis, Co-ord Sets, Suits and more.',
