@@ -36,13 +36,14 @@ interface ProductCardProps {
 export default function ProductCard({ product, priority = false }: ProductCardProps) {
   const [imageIdx, setImageIdx] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
   const { toggleItem, isInWishlist } = useWishlistStore();
   const wishlisted = isInWishlist(product.id);
 
+  const defaultFallback = 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80';
   const images = product.images || [];
-  const mainImage = images[imageIdx]?.url || `https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80`;
-  const hoverImage = images[1]?.url || mainImage;
+  const mainImage = imageError ? defaultFallback : (images[imageIdx]?.url || defaultFallback);
   const discount = product.comparePrice ? calculateDiscount(product.price, product.comparePrice) : 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -119,6 +120,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             )}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             priority={priority}
+            onError={() => setImageError(true)}
           />
         </Link>
 
