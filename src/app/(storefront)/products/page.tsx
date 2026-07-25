@@ -54,43 +54,51 @@ export default async function ProductsPage({
     orderBy = { isFeatured: 'desc' };
   }
 
-  const totalProducts = await prisma.product.count({ where });
+  let totalProducts = 0;
+  let products: any[] = [];
+
+  try {
+    totalProducts = await prisma.product.count({ where });
+    const skip = (page - 1) * pageSize;
+
+    const dbProducts = await prisma.product.findMany({
+      where,
+      orderBy,
+      take: pageSize,
+      skip,
+      include: {
+        category: { select: { name: true } },
+        images: { orderBy: { sortOrder: 'asc' } },
+        variants: true,
+      },
+    });
+
+    products = dbProducts.map((p) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      price: Number(p.price),
+      comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
+      totalStock: p.totalStock,
+      isNewArrival: p.isNewArrival,
+      isBestSeller: p.isBestSeller,
+      isTrending: p.isTrending,
+      category: { name: p.category.name },
+      images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
+      variants: p.variants.map((v) => ({
+        id: v.id,
+        size: v.size,
+        color: v.color,
+        colorHex: v.colorHex || undefined,
+        stock: v.stock,
+      })),
+      avgRating: 4.8,
+    }));
+  } catch (error) {
+    console.warn('ProductsPage DB query warning:', error);
+  }
+
   const totalPages = Math.ceil(totalProducts / pageSize) || 1;
-  const skip = (page - 1) * pageSize;
-
-  const dbProducts = await prisma.product.findMany({
-    where,
-    orderBy,
-    take: pageSize,
-    skip,
-    include: {
-      category: { select: { name: true } },
-      images: { orderBy: { sortOrder: 'asc' } },
-      variants: true,
-    },
-  });
-
-  const products = dbProducts.map((p) => ({
-    id: p.id,
-    name: p.name,
-    slug: p.slug,
-    price: Number(p.price),
-    comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
-    totalStock: p.totalStock,
-    isNewArrival: p.isNewArrival,
-    isBestSeller: p.isBestSeller,
-    isTrending: p.isTrending,
-    category: { name: p.category.name },
-    images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
-    variants: p.variants.map((v) => ({
-      id: v.id,
-      size: v.size,
-      color: v.color,
-      colorHex: v.colorHex || undefined,
-      stock: v.stock,
-    })),
-    avgRating: 4.8,
-  }));
 
   return (
     <div className="bg-white min-h-screen">
@@ -138,7 +146,7 @@ export default async function ProductsPage({
           <ProductGrid products={products} columns={4} />
         ) : (
           <div className="text-center py-20">
-            <p className="text-gray-500 mb-4">No products found matching your criteria.</p>
+            <p className="text-gray-500 mb-4">No products found in catalog.</p>
             <Link href="/products" className="btn-primary inline-block">
               Clear Filters
             </Link>
@@ -171,4 +179,3 @@ export default async function ProductsPage({
     </div>
   );
 }
-
