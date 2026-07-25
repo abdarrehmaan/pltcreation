@@ -39,48 +39,76 @@ const defaultMeta: Record<string, { name: string; description: string; image: st
 export const dynamic = 'force-dynamic';
 
 export async function generateStaticParams() {
-  const categories = await prisma.category.findMany({
-    select: { slug: true },
-  });
-  return categories.map((c) => ({ slug: c.slug }));
+  try {
+    const categories = await prisma.category.findMany({
+      select: { slug: true },
+    });
+    return categories.map((c) => ({ slug: c.slug }));
+  } catch (error) {
+    console.warn('Failed to generateStaticParams for categories:', error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
-  const decodedSlug = decodeURIComponent(slug);
-  const category = await prisma.category.findUnique({
-    where: { slug: decodedSlug },
-  });
-  if (!category) return {};
-  return {
-    title: `${category.name} Collection`,
-    description: category.description || 'Premium ethnic fashion',
-  };
+  try {
+    const { slug } = await params;
+    const decodedSlug = decodeURIComponent(slug);
+    const category = await prisma.category.findUnique({
+      where: { slug: decodedSlug },
+    });
+    if (!category) return {};
+    return {
+      title: `${category.name} Collection`,
+      description: category.description || 'Premium ethnic fashion',
+    };
+  } catch (error) {
+    return {};
+  }
 }
 
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
   
-  const category = await prisma.category.findUnique({
-    where: { slug: decodedSlug },
-  });
+  let category: any = null;
+  let products: any[] = [];
 
-  if (!category) {
-    return notFound();
+  try {
+    category = await prisma.category.findUnique({
+      where: { slug: decodedSlug },
+    });
+
+    if (category) {
+      products = await prisma.product.findMany({
+        where: {
+          categoryId: category.id,
+          isActive: true,
+        },
+        include: {
+          images: true,
+          category: { select: { name: true } },
+          variants: true,
+        },
+      });
+    }
+  } catch (error) {
+    console.warn('CategoryPage DB query warning:', error);
   }
 
-  const products = await prisma.product.findMany({
-    where: {
-      categoryId: category.id,
-      isActive: true,
-    },
-    include: {
-      images: true,
-      category: { select: { name: true } },
-      variants: true,
-    },
-  });
+  if (!category) {
+    // Check fallback default meta for rendering gracefully if category slug matches defaultMeta
+    if (defaultMeta[slug] || defaultMeta[decodedSlug]) {
+      const meta = defaultMeta[slug] || defaultMeta[decodedSlug];
+      category = {
+        name: meta.name,
+        description: meta.description,
+        image: meta.image,
+      };
+    } else {
+      return notFound();
+    }
+  }
 
   const formattedProducts = products.map((p) => ({
     id: p.id,
@@ -93,8 +121,8 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     isNewArrival: p.isNewArrival,
     isBestSeller: p.isBestSeller,
     category: { name: p.category.name },
-    images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
-    variants: p.variants.map((v) => ({
+    images: p.images.map((img: any) => ({ url: img.url, alt: img.alt || '' })),
+    variants: p.variants.map((v: any) => ({
       id: v.id,
       size: v.size,
       color: v.color,

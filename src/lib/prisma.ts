@@ -10,7 +10,13 @@ function getPrismaInstance(): PrismaClient {
     process.env.DIRECT_URL ||
     'postgresql://postgres:postgres@localhost:5432/postgres';
 
-  const pool = new Pool({ connectionString });
+  const isSupabase = connectionString.includes('supabase.com');
+
+  const pool = new Pool({
+    connectionString,
+    ssl: isSupabase ? { rejectUnauthorized: false } : undefined,
+    max: 10,
+  });
   const adapter = new PrismaPg(pool);
 
   return new PrismaClient({

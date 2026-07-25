@@ -6,57 +6,72 @@ import { notFound } from 'next/navigation';
 export const dynamic = 'force-dynamic';
 
 export async function generateStaticParams() {
-  const collections = await prisma.collection.findMany({
-    select: { slug: true },
-  });
-  return collections.map((c) => ({ slug: c.slug }));
+  try {
+    const collections = await prisma.collection.findMany({
+      select: { slug: true },
+    });
+    return collections.map((c) => ({ slug: c.slug }));
+  } catch (error) {
+    console.warn('Failed to generateStaticParams for collections:', error);
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
-  const decodedSlug = decodeURIComponent(slug);
-  const collection = await prisma.collection.findUnique({
-    where: { slug: decodedSlug },
-  });
-  if (!collection) return {};
-  return {
-    title: `${collection.name} Collection`,
-    description: collection.description || 'Premium ethnic fashion collection',
-  };
+  try {
+    const { slug } = await params;
+    const decodedSlug = decodeURIComponent(slug);
+    const collection = await prisma.collection.findUnique({
+      where: { slug: decodedSlug },
+    });
+    if (!collection) return {};
+    return {
+      title: `${collection.name} Collection`,
+      description: collection.description || 'Premium ethnic fashion collection',
+    };
+  } catch (error) {
+    return {};
+  }
 }
 
 export default async function CollectionPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const decodedSlug = decodeURIComponent(slug);
   
-  const collection = await prisma.collection.findUnique({
-    where: { slug: decodedSlug },
-    include: {
-      products: {
-        orderBy: {
-          sortOrder: 'asc',
-        },
-        include: {
-          product: {
-            include: {
-              images: true,
-              category: { select: { name: true } },
-              variants: true,
+  let collection: any = null;
+
+  try {
+    collection = await prisma.collection.findUnique({
+      where: { slug: decodedSlug },
+      include: {
+        products: {
+          orderBy: {
+            sortOrder: 'asc',
+          },
+          include: {
+            product: {
+              include: {
+                images: true,
+                category: { select: { name: true } },
+                variants: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    });
+  } catch (error) {
+    console.warn('CollectionPage DB query warning:', error);
+  }
 
   if (!collection) {
     return notFound();
   }
 
   // Filter out any inactive products
-  const formattedProducts = collection.products
-    .filter((cp) => cp.product.isActive)
-    .map((cp) => {
+  const formattedProducts = (collection.products || [])
+    .filter((cp: any) => cp.product.isActive)
+    .map((cp: any) => {
       const p = cp.product;
       return {
         id: p.id,
@@ -69,8 +84,8 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         isNewArrival: p.isNewArrival,
         isBestSeller: p.isBestSeller,
         category: { name: p.category.name },
-        images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
-        variants: p.variants.map((v) => ({
+        images: p.images.map((img: any) => ({ url: img.url, alt: img.alt || '' })),
+        variants: p.variants.map((v: any) => ({
           id: v.id,
           size: v.size,
           color: v.color,

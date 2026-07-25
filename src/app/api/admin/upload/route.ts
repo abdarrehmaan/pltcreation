@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import path from 'path';
-import fs from 'fs/promises';
+import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,19 +22,46 @@ export async function POST(request: Request) {
       .replace(/\s+/g, '-')
       .replace(/[^\w\.-]+/g, '');
 
-    const fileExt = cleanOriginalName.split('.').pop() || 'jpg';
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    await fs.mkdir(uploadsDir, { recursive: true });
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}-${cleanOriginalName}`;
 
-    const localFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}-${cleanOriginalName}`;
-    const localFilePath = path.join(uploadsDir, localFileName);
+    // Upload to Supabase Storage bucket 'productimages' (or fallback to 'products')
+    let bucketName = 'productimages';
+    let { data, error } = await supabase.storage
+      .from(bucketName)
+      .upload(fileName, buffer, {
+        contentType: file.type || 'image/jpeg',
+        upsert: true,
+      });
 
-    await fs.writeFile(localFilePath, buffer);
-    const imageUrl = `/uploads/${encodeURIComponent(localFileName)}`;
+    if (error && (error.message?.includes('not found') || error.message?.includes('Bucket'))) {
+      // Try 'products' bucket if 'productimages' bucket is not found
+      bucketName = 'products';
+      const fallbackResult = await supabase.storage
+        .from(bucketName)
+        .upload(fileName, buffer, {
+          contentType: file.type || 'image/jpeg',
+          upsert: true,
+        });
+      data = fallbackResult.data;
+      error = fallbackResult.error;
+    }
+
+    if (error) {
+      console.error('Supabase storage upload error:', error);
+      return NextResponse.json(
+        { error: `Supabase Storage upload failed: ${error.message}` },
+        { status: 500 }
+      );
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(fileName);
 
     return NextResponse.json({
       success: true,
-      url: imageUrl,
+      url: urlData.publicUrl,
       fileName: file.name,
     });
   } catch (error: any) {
@@ -46,3 +72,4 @@ export async function POST(request: Request) {
     );
   }
 }
+
