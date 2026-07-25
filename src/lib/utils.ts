@@ -73,5 +73,8 @@ export function sanitizeImageUrl(url?: string | null): string {
   if (url.includes('kffnpufldxxlrilyequy.supabase.co')) {
     return '/banner-kurti.jpg';
   }
+  if (url.includes(' ')) {
+    return encodeURI(url);
+  }
   return url;
 }

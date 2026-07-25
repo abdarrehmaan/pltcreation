@@ -16,15 +16,22 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const fileExt = file.name.split('.').pop() || 'jpg';
+    // Sanitize filename to replace spaces and special characters with hyphens
+    const cleanOriginalName = file.name
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\.-]+/g, '');
+
+    const fileExt = cleanOriginalName.split('.').pop() || 'jpg';
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
     await fs.mkdir(uploadsDir, { recursive: true });
 
-    const localFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const localFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}-${cleanOriginalName}`;
     const localFilePath = path.join(uploadsDir, localFileName);
 
     await fs.writeFile(localFilePath, buffer);
-    const imageUrl = `/uploads/${localFileName}`;
+    const imageUrl = `/uploads/${encodeURIComponent(localFileName)}`;
 
     return NextResponse.json({
       success: true,

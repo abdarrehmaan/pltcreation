@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
-import { cn } from '@/lib/utils';
+import { cn, sanitizeImageUrl } from '@/lib/utils';
 
 const productSchema = z.object({
   name: z.string().min(3, 'Name is required'),
@@ -572,7 +572,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                   <div key={index} className="flex flex-col border border-gray-200 bg-gray-50 rounded-xl overflow-hidden shadow-sm">
                     <div className="relative group aspect-square">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img.url} alt={img.alt || 'Product'} className="w-full h-full object-cover" />
+                      <img src={sanitizeImageUrl(img.url)} alt={img.alt || 'Product'} className="w-full h-full object-cover" />
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
