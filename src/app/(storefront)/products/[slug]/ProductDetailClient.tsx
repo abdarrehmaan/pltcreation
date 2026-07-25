@@ -38,6 +38,8 @@ interface Product {
   _count?: { reviews: number };
 }
 
+const DEFAULT_FALLBACK_IMAGE = '/banner-kurti.jpg';
+
 export default function ProductDetailClient({
   product,
   relatedProducts,
@@ -65,22 +67,24 @@ export default function ProductDetailClient({
 
   // Filter images based on selected color
   const filteredImages = React.useMemo(() => {
-    if (!product.images || product.images.length === 0) {
-      return [{ url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="50%" font-family="sans-serif" font-size="18" fill="%239ca3af" text-anchor="middle">No Image Available</text></svg>', alt: product.name }];
+    const validList = (product.images || []).filter((img: any) => img && typeof img.url === 'string' && img.url.trim().length > 0);
+    if (validList.length === 0) {
+      return [{ url: DEFAULT_FALLBACK_IMAGE, alt: product.name }];
     }
     
     if (selectedColor) {
-      const colorImages = product.images.filter(
+      const colorImages = validList.filter(
         (img: any) => img.color && img.color.toLowerCase() === selectedColor.toLowerCase()
       );
+      const remainingImages = validList.filter(
+        (img: any) => !img.color || img.color.toLowerCase() !== selectedColor.toLowerCase()
+      );
       if (colorImages.length > 0) {
-        // Show color-specific images first, then common images (images with no color assigned)
-        const commonImages = product.images.filter((img: any) => !img.color);
-        return [...colorImages, ...commonImages];
+        return [...colorImages, ...remainingImages];
       }
     }
     
-    return product.images;
+    return validList;
   }, [product.images, selectedColor, product.name]);
 
   const images = filteredImages;
@@ -176,6 +180,9 @@ export default function ProductDetailClient({
     toast.success('Added to cart!');
   };
 
+  const [imageError, setImageError] = useState(false);
+  const activeMainImage = imageError ? DEFAULT_FALLBACK_IMAGE : (images[selectedImage]?.url || images[0]?.url || DEFAULT_FALLBACK_IMAGE);
+
   return (
     <div className="bg-white min-h-screen">
       {/* Breadcrumb */}
@@ -205,14 +212,17 @@ export default function ProductDetailClient({
               {images.map((img, i) => (
                 <button
                   key={i}
-                  onClick={() => setSelectedImage(i)}
+                  onClick={() => {
+                    setImageError(false);
+                    setSelectedImage(i);
+                  }}
                   className={cn(
-                    'relative w-16 h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0',
+                    'relative w-16 h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 bg-gray-100',
                     i === selectedImage ? 'border-brand-600' : 'border-transparent hover:border-gray-300'
                   )}
                   aria-label={`View image ${i + 1}`}
                 >
-                  <Image src={img.url} alt={img.alt || ''} fill className="object-cover" sizes="64px" />
+                  <Image src={img.url} alt={img.alt || ''} fill className="object-cover" sizes="64px" onError={(e) => { (e.target as any).src = DEFAULT_FALLBACK_IMAGE; }} />
                 </button>
               ))}
             </div>
@@ -223,16 +233,18 @@ export default function ProductDetailClient({
                 setLightboxImageIdx(selectedImage);
                 setIsLightboxOpen(true);
               }}
-              className="relative flex-1 rounded-2xl overflow-hidden bg-gray-50 cursor-zoom-in group" 
+              className="relative flex-1 rounded-2xl overflow-hidden bg-gray-100 cursor-zoom-in group" 
               style={{ aspectRatio: '3/4' }}
             >
               <Image
-                src={images[selectedImage]?.url || images[0].url}
+                key={activeMainImage}
+                src={activeMainImage}
                 alt={images[selectedImage]?.alt || product.name}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-102"
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 priority
+                onError={() => setImageError(true)}
               />
               {discount > 0 && (
                 <div className="badge-discount">{discount}% OFF</div>

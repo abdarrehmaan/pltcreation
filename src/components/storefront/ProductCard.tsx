@@ -41,7 +41,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
   const { toggleItem, isInWishlist } = useWishlistStore();
   const wishlisted = isInWishlist(product.id);
 
-  const defaultFallback = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500"><rect width="100%" height="100%" fill="%23f3f4f6"/><text x="50%" y="50%" font-family="sans-serif" font-size="16" fill="%239ca3af" text-anchor="middle">No Image Available</text></svg>';
+  const defaultFallback = '/banner-kurti.jpg';
   const images = product.images || [];
   const mainImage = imageError || (!images[imageIdx]?.url) ? defaultFallback : images[imageIdx].url;
   const discount = product.comparePrice ? calculateDiscount(product.price, product.comparePrice) : 0;

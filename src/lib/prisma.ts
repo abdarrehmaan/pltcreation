@@ -5,22 +5,16 @@ import { Pool } from 'pg';
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function getPrismaInstance(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL || process.env.DIRECT_URL;
+  const connectionString =
+    process.env.DATABASE_URL ||
+    process.env.DIRECT_URL ||
+    'postgresql://postgres:postgres@localhost:5432/postgres';
 
-  if (connectionString) {
-    try {
-      const pool = new Pool({ connectionString });
-      const adapter = new PrismaPg(pool);
-      return new PrismaClient({
-        adapter,
-        log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-      });
-    } catch (e) {
-      console.warn('Failed to initialize PrismaPg adapter with pool:', e);
-    }
-  }
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaPg(pool);
 
   return new PrismaClient({
+    adapter,
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   });
 }
