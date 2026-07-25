@@ -9,21 +9,26 @@ export default async function StorefrontLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const dbFeatured = await prisma.product.findMany({
-    where: { isFeatured: true, isActive: true },
-    take: 3,
-    include: {
-      images: { orderBy: { sortOrder: 'asc' } },
-    },
-  });
+  let featuredProducts: any[] = [];
+  try {
+    const dbFeatured = await prisma.product.findMany({
+      where: { isFeatured: true, isActive: true },
+      take: 3,
+      include: {
+        images: { orderBy: { sortOrder: 'asc' } },
+      },
+    });
 
-  const featuredProducts = dbFeatured.map((p) => ({
-    id: p.id,
-    name: p.name,
-    slug: p.slug,
-    price: Number(p.price),
-    images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
-  }));
+    featuredProducts = dbFeatured.map((p) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      price: Number(p.price),
+      images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
+    }));
+  } catch (error) {
+    console.warn('StorefrontLayout database query warning:', error);
+  }
 
   return (
     <>
@@ -35,4 +40,3 @@ export default async function StorefrontLayout({
     </>
   );
 }
-

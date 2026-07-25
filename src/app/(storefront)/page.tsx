@@ -9,7 +9,6 @@ import PremiumTrust from '@/components/storefront/PremiumTrust';
 import BrandStory from '@/components/storefront/BrandStory';
 import { ReviewCard } from '@/components/storefront/ReviewCard';
 import { mockReviews } from '@/lib/mock-data';
-import Link from 'next/link';
 import CollectionsBanner from '@/components/storefront/CollectionsBanner';
 import OfferBanner from '@/components/storefront/OfferBanner';
 import { prisma } from '@/lib/prisma';
@@ -21,70 +20,86 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const dbProducts = await prisma.product.findMany({
-    where: { isActive: true },
-    include: {
-      category: { select: { name: true } },
-      images: { orderBy: { sortOrder: 'asc' } },
-      variants: true,
-    },
-  });
+  let formattedProducts: any[] = [];
+  let collections: any[] = [];
+  let categories: any[] = [];
 
-  const formattedProducts = dbProducts.map((p) => ({
-    id: p.id,
-    name: p.name,
-    slug: p.slug,
-    price: Number(p.price),
-    comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
-    totalStock: p.totalStock,
-    isNewArrival: p.isNewArrival,
-    isBestSeller: p.isBestSeller,
-    isTrending: p.isTrending,
-    category: { name: p.category.name },
-    images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
-    variants: p.variants.map((v) => ({
-      id: v.id,
-      size: v.size,
-      color: v.color,
-      colorHex: v.colorHex || undefined,
-      stock: v.stock,
-    })),
-    avgRating: 4.8,
-  }));
+  try {
+    const dbProducts = await prisma.product.findMany({
+      where: { isActive: true },
+      include: {
+        category: { select: { name: true } },
+        images: { orderBy: { sortOrder: 'asc' } },
+        variants: true,
+      },
+    });
+
+    formattedProducts = dbProducts.map((p) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      price: Number(p.price),
+      comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
+      totalStock: p.totalStock,
+      isNewArrival: p.isNewArrival,
+      isBestSeller: p.isBestSeller,
+      isTrending: p.isTrending,
+      category: { name: p.category.name },
+      images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
+      variants: p.variants.map((v) => ({
+        id: v.id,
+        size: v.size,
+        color: v.color,
+        colorHex: v.colorHex || undefined,
+        stock: v.stock,
+      })),
+      avgRating: 4.8,
+    }));
+  } catch (error) {
+    console.warn('HomePage products query warning:', error);
+  }
+
+  try {
+    const collectionsDb = await prisma.collection.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' },
+    });
+
+    collections = collectionsDb.map((c) => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      description: c.description || '',
+      bannerImage: c.bannerImage || 'https://picsum.photos/seed/collection/1200/800',
+    }));
+  } catch (error) {
+    console.warn('HomePage collections query warning:', error);
+  }
+
+  try {
+    const categoriesDb = await prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' },
+      include: {
+        _count: {
+          select: { products: true },
+        },
+      },
+    });
+
+    categories = categoriesDb.map((c) => ({
+      name: c.name,
+      slug: c.slug,
+      image: c.image || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80',
+      count: `${c._count.products} Styles`,
+    }));
+  } catch (error) {
+    console.warn('HomePage categories query warning:', error);
+  }
 
   const newArrivals = formattedProducts.filter((p) => p.isNewArrival).slice(0, 4);
   const trending = formattedProducts.filter((p) => p.isTrending).slice(0, 4);
   const bestSellers = formattedProducts.filter((p) => p.isBestSeller).slice(0, 4);
-
-  const collectionsDb = await prisma.collection.findMany({
-    where: { isActive: true },
-    orderBy: { sortOrder: 'asc' },
-  });
-
-  const collections = collectionsDb.map((c) => ({
-    id: c.id,
-    name: c.name,
-    slug: c.slug,
-    description: c.description || '',
-    bannerImage: c.bannerImage || 'https://picsum.photos/seed/collection/1200/800',
-  }));
-
-  const categoriesDb = await prisma.category.findMany({
-    where: { isActive: true },
-    orderBy: { sortOrder: 'asc' },
-    include: {
-      _count: {
-        select: { products: true },
-      },
-    },
-  });
-
-  const categories = categoriesDb.map((c) => ({
-    name: c.name,
-    slug: c.slug,
-    image: c.image || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80',
-    count: `${c._count.products} Styles`,
-  }));
 
   return (
     <>
