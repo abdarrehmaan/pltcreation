@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { deleteStorageImages } from '@/lib/storage-helpers';
 
 export async function GET(
   request: Request,
@@ -61,6 +62,14 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+
+    const category = await prisma.category.findUnique({
+      where: { id },
+    });
+
+    if (category && category.image) {
+      await deleteStorageImages([category.image]);
+    }
 
     await prisma.category.delete({
       where: { id },

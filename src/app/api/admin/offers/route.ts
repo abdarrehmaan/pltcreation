@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { deleteStorageImages } from '@/lib/storage-helpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -77,6 +78,10 @@ export async function DELETE(request: Request) {
     if (itemType === 'COUPON') {
       await prisma.coupon.delete({ where: { id } });
     } else {
+      const offer = await prisma.offer.findUnique({ where: { id } });
+      if (offer && offer.imageUrl) {
+        await deleteStorageImages([offer.imageUrl]);
+      }
       await prisma.offer.delete({ where: { id } });
     }
 

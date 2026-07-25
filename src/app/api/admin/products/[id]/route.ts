@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { deleteStorageImages } from '@/lib/storage-helpers';
 
 export async function GET(
   request: Request,
@@ -21,7 +22,6 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    // Format for form defaultValues
     const formattedProduct = {
       ...product,
       price: Number(product.price),
@@ -69,7 +69,6 @@ export async function PUT(
     const sanitizedSlug = slug ? slug.toString().toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-') : undefined;
 
     const updatedProduct = await prisma.$transaction(async (tx: any) => {
-      // 1. Update basic product details
       const product = await tx.product.update({
         where: { id },
         data: {
@@ -88,7 +87,6 @@ export async function PUT(
         },
       });
 
-      // 2. Sync images
       await tx.productImage.deleteMany({ where: { productId: id } });
       if (images && images.length > 0) {
         await tx.productImage.createMany({
@@ -102,7 +100,6 @@ export async function PUT(
         });
       }
 
-      // 3. Sync variants
       await tx.productVariant.deleteMany({ where: { productId: id } });
       if (variants && variants.length > 0) {
         await tx.productVariant.createMany({
@@ -142,30 +139,38 @@ export async function DELETE(
 
     const product = await prisma.product.findUnique({
       where: { id },
+      include: { images: true },
     });
 
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    await prisma.product.update({
-      where: { id },
-      data: {
-        isDeleted: true,
-        isActive: false,
-        slug: `${product.slug}-deleted-${Date.now()}`,
-      },
+    // 1. Delete image files from Supabase Storage
+    if (product.images && product.images.length > 0) {
+      const imageUrls = product.images.map((img) => img.url);
+      await deleteStorageImages(imageUrls);
+    }
+
+    // 2. Hard delete product & associated relations from Database
+    await prisma.$transaction(async (tx) => {
+      await tx.productImage.deleteMany({ where: { productId: id } });
+      await tx.productVariant.deleteMany({ where: { productId: id } });
+      await tx.collectionProduct.deleteMany({ where: { productId: id } });
+      await tx.wishlistItem.deleteMany({ where: { productId: id } });
+      await tx.cartItem.deleteMany({ where: { productId: id } });
+      await tx.review.deleteMany({ where: { productId: id } });
+      await tx.product.delete({ where: { id } });
     });
 
     revalidatePath('/products');
     revalidatePath(`/products/${product.slug}`);
     revalidatePath('/');
-    revalidatePath('/best-sellers');
-    revalidatePath('/new-arrivals');
+    revalidatePath('/admin/products');
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Failed to delete product:', error);
+    console.error('Failed to hard delete product:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
