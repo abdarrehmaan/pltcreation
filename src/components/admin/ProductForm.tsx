@@ -211,31 +211,28 @@ export default function ProductForm({ initialData }: ProductFormProps) {
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const filePath = `products/${fileName}`;
+        const formData = new FormData();
+        formData.append('file', file);
 
-        const { data, error } = await supabase.storage
-          .from('products')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: true,
-          });
+        const res = await fetch('/api/admin/upload', {
+          method: 'POST',
+          body: formData,
+        });
 
-        if (error) throw error;
+        const json = await res.json();
+        if (!res.ok || !json.success || !json.url) {
+          throw new Error(json.error || 'Image upload failed');
+        }
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('products')
-          .getPublicUrl(filePath);
-
-        setUploadedImages((prev) => [...prev, { url: publicUrl, alt: file.name }]);
+        setUploadedImages((prev) => [...prev, { url: json.url, alt: file.name }]);
       }
       toast.success('Images uploaded successfully!');
     } catch (err: any) {
       console.error('Upload error:', err);
-      toast.error(`Upload failed: ${err.message}. Make sure you created a public bucket named "products" in Supabase!`);
+      toast.error(`Upload failed: ${err.message}`);
     } finally {
       setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
