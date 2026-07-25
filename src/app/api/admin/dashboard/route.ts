@@ -5,10 +5,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // 1. Total Revenue (sum of all orders not cancelled)
+    // 1. Total Revenue (sum of all completed non-cancelled and non-returned orders)
     const revenueResult = await prisma.order.aggregate({
       where: {
-        status: { not: 'CANCELLED' },
+        status: { notIn: ['CANCELLED', 'RETURNED'] },
       },
       _sum: {
         total: true,
@@ -26,8 +26,12 @@ export async function GET() {
       },
     });
 
-    // 4. Total Products listings
-    const totalProducts = await prisma.product.count();
+    // 4. Total Active Products listings (excluding deleted)
+    const totalProducts = await prisma.product.count({
+      where: {
+        isDeleted: false,
+      },
+    });
 
     // 5. Recent 5 Orders with customer details
     const recentOrdersDb = await prisma.order.findMany({
