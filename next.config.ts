@@ -6,10 +6,15 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: 'kffnpufldxxlrilyequy.supabase.co',
+        pathname: '/storage/v1/object/public/**',
       },
       {
-        protocol: 'http',
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
         hostname: '**',
       },
     ],
@@ -17,7 +22,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@prisma/client'],
   experimental: {
     serverActions: {
-      allowedOrigins: ['localhost:3000'],
+      allowedOrigins: ['localhost:3000', 'pltcreation.com'],
     },
   },
 };
