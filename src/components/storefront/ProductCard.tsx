@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Heart, ShoppingBag, Eye, Star, Flame } from 'lucide-react';
 import { useCartStore } from '@/features/cart/store';
 import { useWishlistStore } from '@/features/wishlist/store';
-import { formatPrice, calculateDiscount } from '@/lib/utils';
+import { formatPrice, calculateDiscount, sanitizeImageUrl } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
@@ -43,7 +43,8 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
 
   const defaultFallback = '/banner-kurti.jpg';
   const images = product.images || [];
-  const mainImage = imageError || (!images[imageIdx]?.url) ? defaultFallback : images[imageIdx].url;
+  const rawImage = imageError || (!images[imageIdx]?.url) ? defaultFallback : images[imageIdx].url;
+  const mainImage = sanitizeImageUrl(rawImage);
   const discount = product.comparePrice ? calculateDiscount(product.price, product.comparePrice) : 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {

@@ -65,3 +65,13 @@ export function getStockStatus(stock: number): { label: string; color: string } 
 export function calculateShipping(subtotal: number, freeThreshold = 1499, standardCharge = 99): number {
   return subtotal >= freeThreshold ? 0 : standardCharge;
 }
+
+export function sanitizeImageUrl(url?: string | null): string {
+  if (!url || typeof url !== 'string' || url.trim() === '') {
+    return '/banner-kurti.jpg';
+  }
+  if (url.includes('kffnpufldxxlrilyequy.supabase.co')) {
+    return '/banner-kurti.jpg';
+  }
+  return url;
+}

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Heart, ShoppingBag, Zap, Star, ChevronLeft, ChevronRight, Minus, Plus, Shield, Truck, RotateCcw, Share2, X } from 'lucide-react';
 import { useCartStore } from '@/features/cart/store';
 import { useWishlistStore } from '@/features/wishlist/store';
-import { formatPrice, calculateDiscount } from '@/lib/utils';
+import { formatPrice, calculateDiscount, sanitizeImageUrl } from '@/lib/utils';
 import ProductGrid from '@/components/storefront/ProductGrid';
 import SectionHeader from '@/components/storefront/SectionHeader';
 import toast from 'react-hot-toast';
@@ -67,7 +67,9 @@ export default function ProductDetailClient({
 
   // Filter images based on selected color
   const filteredImages = React.useMemo(() => {
-    const validList = (product.images || []).filter((img: any) => img && typeof img.url === 'string' && img.url.trim().length > 0);
+    const validList = (product.images || [])
+      .map((img: any) => ({ ...img, url: sanitizeImageUrl(img?.url) }))
+      .filter((img: any) => img && typeof img.url === 'string' && img.url.trim().length > 0);
     if (validList.length === 0) {
       return [{ url: DEFAULT_FALLBACK_IMAGE, alt: product.name }];
     }
