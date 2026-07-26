@@ -1,7 +1,9 @@
-const { PrismaClient } = require('@prisma/client');
-const { PrismaPg } = require('@prisma/adapter-pg');
-const { Pool } = require('pg');
-require('dotenv').config({ path: '.env.local' });
+import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import pkg from 'pg';
+const { Pool } = pkg;
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
 
 async function main() {
   const pool = new Pool({ connectionString: process.env.DIRECT_URL || process.env.DATABASE_URL });
@@ -34,9 +36,10 @@ async function main() {
 
     // 2. Seed Collections
     const collectionsData = [
-      { name: 'Eid Festive Edit', slug: 'eid-festive', description: 'Celebrate the most beautiful festival with our handpicked Eid collection', bannerImage: 'https://images.unsplash.com/photo-1596783074918-c84cb06531ca?w=1200&auto=format&fit=crop&q=80' },
-      { name: 'Monsoon Freshness', slug: 'monsoon', description: 'Light, breathable fabrics perfect for the rainy season', bannerImage: 'https://images.unsplash.com/photo-1561414927-6d86591d0c4f?w=1200&auto=format&fit=crop&q=80' },
-      { name: 'Wedding Season', slug: 'wedding', description: 'Be the most elegant guest at every wedding this season', bannerImage: 'https://images.unsplash.com/photo-1583391265517-35bbdad01209?w=1200&auto=format&fit=crop&q=80' },
+      { name: 'Eid Festive Edit', slug: 'eid-festive', description: 'Celebrate the most beautiful festival with our handpicked Eid collection', bannerImage: '/banner1.jpg' },
+      { name: 'Monsoon Freshness', slug: 'monsoon', description: 'Light, breathable fabrics perfect for the rainy season', bannerImage: '/banner2.png' },
+      { name: 'Wedding Season', slug: 'wedding', description: 'Be the most elegant guest at every wedding this season', bannerImage: '/banner3.png' },
+      { name: 'Designer Dresses', slug: 'dresses-collection', description: 'Stunning designer dresses and ethnic fusion silhouettes', bannerImage: '/banner-dresses.jpg' },
     ];
 
     for (const col of collectionsData) {
@@ -242,16 +245,18 @@ async function main() {
         throw new Error(`Category ${prod.categoryName} not found`);
       }
 
-      // Safe update of product images and variants first
-      await prisma.productImage.deleteMany({ where: { productId: prod.id } });
-      await prisma.productVariant.deleteMany({ where: { productId: prod.id } });
+      // Find existing product by SKU if any to clean up images/variants
+      const existingProduct = await prisma.product.findUnique({ where: { sku: prod.sku } });
+      if (existingProduct) {
+        await prisma.productImage.deleteMany({ where: { productId: existingProduct.id } });
+        await prisma.productVariant.deleteMany({ where: { productId: existingProduct.id } });
+      }
 
       await prisma.product.upsert({
-        where: { id: prod.id },
+        where: { sku: prod.sku },
         update: {
           name: prod.name,
           slug: prod.slug,
-          sku: prod.sku,
           price: prod.price,
           comparePrice: prod.comparePrice,
           totalStock: prod.totalStock,
@@ -294,44 +299,71 @@ async function main() {
 
     // 4. Connect Products to Collections safely
     const dbCollections = await prisma.collection.findMany();
+    const dbProducts = await prisma.product.findMany();
+    
+    const getProdId = (sku) => dbProducts.find(p => p.sku === sku)?.id;
+
     const eidCollection = dbCollections.find(c => c.slug === 'eid-festive');
     const monsoonCollection = dbCollections.find(c => c.slug === 'monsoon');
     const weddingCollection = dbCollections.find(c => c.slug === 'wedding');
+    const dressesCollection = dbCollections.find(c => c.slug === 'dresses-collection');
 
-    if (eidCollection && monsoonCollection && weddingCollection) {
-      const collectionProducts = [
-        // Eid Festive Edit: p1, p2, p4, p8
-        { collectionId: eidCollection.id, productId: 'p1', sortOrder: 0 },
-        { collectionId: eidCollection.id, productId: 'p2', sortOrder: 1 },
-        { collectionId: eidCollection.id, productId: 'p4', sortOrder: 2 },
-        { collectionId: eidCollection.id, productId: 'p8', sortOrder: 3 },
+    const rawConnections = [];
 
-        // Monsoon Freshness: p3, p5, p7
-        { collectionId: monsoonCollection.id, productId: 'p3', sortOrder: 0 },
-        { collectionId: monsoonCollection.id, productId: 'p5', sortOrder: 1 },
-        { collectionId: monsoonCollection.id, productId: 'p7', sortOrder: 2 },
+    if (eidCollection) {
+      rawConnections.push(
+        { colId: eidCollection.id, sku: 'HFZ-CHK-001', sortOrder: 0 },
+        { colId: eidCollection.id, sku: 'HFZ-CRD-001', sortOrder: 1 },
+        { colId: eidCollection.id, sku: 'HFZ-STT-001', sortOrder: 2 },
+        { colId: eidCollection.id, sku: 'HFZ-CRD-002', sortOrder: 3 }
+      );
+    }
 
-        // Wedding Season: p2, p4, p6, p8
-        { collectionId: weddingCollection.id, productId: 'p2', sortOrder: 0 },
-        { collectionId: weddingCollection.id, productId: 'p4', sortOrder: 1 },
-        { collectionId: weddingCollection.id, productId: 'p6', sortOrder: 2 },
-        { collectionId: weddingCollection.id, productId: 'p8', sortOrder: 3 },
-      ];
+    if (monsoonCollection) {
+      rawConnections.push(
+        { colId: monsoonCollection.id, sku: 'HFZ-KRT-001', sortOrder: 0 },
+        { colId: monsoonCollection.id, sku: 'HFZ-UNS-001', sortOrder: 1 },
+        { colId: monsoonCollection.id, sku: 'HFZ-KRT-002', sortOrder: 2 }
+      );
+    }
 
-      for (const cp of collectionProducts) {
+    if (weddingCollection) {
+      rawConnections.push(
+        { colId: weddingCollection.id, sku: 'HFZ-CRD-001', sortOrder: 0 },
+        { colId: weddingCollection.id, sku: 'HFZ-STT-001', sortOrder: 1 },
+        { colId: weddingCollection.id, sku: 'HFZ-CHK-002', sortOrder: 2 },
+        { colId: weddingCollection.id, sku: 'HFZ-CRD-002', sortOrder: 3 }
+      );
+    }
+
+    if (dressesCollection) {
+      rawConnections.push(
+        { colId: dressesCollection.id, sku: 'HFZ-CHK-001', sortOrder: 0 },
+        { colId: dressesCollection.id, sku: 'HFZ-CRD-001', sortOrder: 1 },
+        { colId: dressesCollection.id, sku: 'HFZ-STT-001', sortOrder: 2 }
+      );
+    }
+
+    for (const conn of rawConnections) {
+      const productId = getProdId(conn.sku);
+      if (productId) {
         await prisma.collectionProduct.upsert({
           where: {
             collectionId_productId: {
-              collectionId: cp.collectionId,
-              productId: cp.productId,
+              collectionId: conn.colId,
+              productId: productId,
             }
           },
-          update: { sortOrder: cp.sortOrder },
-          create: cp,
+          update: { sortOrder: conn.sortOrder },
+          create: {
+            collectionId: conn.colId,
+            productId: productId,
+            sortOrder: conn.sortOrder,
+          },
         });
       }
-      console.log('Upserted product connections to collections.');
     }
+    console.log('Upserted product connections to collections.');
 
     console.log('Database seeding/updating completed successfully!');
   } catch (error) {
