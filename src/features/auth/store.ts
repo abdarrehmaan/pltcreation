@@ -14,8 +14,9 @@ export interface User {
 
 interface AuthState {
   user: User | null;
-  login: (emailOrPhone: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (name: string, email: string, phone: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (emailOrPhone: string, password: string) => Promise<{ success: boolean; error?: string; needsConfirmation?: boolean }>;
+  register: (name: string, email: string, phone: string, password: string) => Promise<{ success: boolean; error?: string; needsConfirmation?: boolean }>;
+  resendConfirmationEmail: (email: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 }
 
@@ -36,7 +37,14 @@ export const useAuthStore = create<AuthState>()(
           const { data, error } = await supabase.auth.signInWithPassword(signInCredentials);
 
           if (error) {
-            return { success: false, error: error.message };
+            const isUnconfirmed = error.message.toLowerCase().includes('email not confirmed');
+            return {
+              success: false,
+              error: isUnconfirmed
+                ? 'Your email address has not been confirmed yet. Please check your inbox for the confirmation link.'
+                : error.message,
+              needsConfirmation: isUnconfirmed,
+            };
           }
 
           if (data?.user) {
@@ -105,7 +113,7 @@ export const useAuthStore = create<AuthState>()(
           }
 
           if (data?.user) {
-            // Explicitly sync profile and create wallet in Prisma PostgreSQL database
+            // Sync profile and wallet in Prisma DB
             try {
               await fetch('/api/auth/register', {
                 method: 'POST',
@@ -121,12 +129,28 @@ export const useAuthStore = create<AuthState>()(
               console.error('Failed to sync user profile to DB:', syncErr);
             }
 
-            return { success: true };
+            const needsConfirmation = !data.session && !data.user.confirmed_at;
+            return { success: true, needsConfirmation };
           }
 
           return { success: false, error: 'Registration failed' };
         } catch (err: any) {
           return { success: false, error: err.message || 'Registration failed' };
+        }
+      },
+
+      resendConfirmationEmail: async (email: string) => {
+        try {
+          const { error } = await supabase.auth.resend({
+            type: 'signup',
+            email: email.trim().toLowerCase(),
+          });
+          if (error) {
+            return { success: false, error: error.message };
+          }
+          return { success: true };
+        } catch (err: any) {
+          return { success: false, error: err.message || 'Failed to resend confirmation email' };
         }
       },
 
@@ -145,4 +169,5 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
 

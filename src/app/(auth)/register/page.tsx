@@ -26,7 +26,11 @@ export default function RegisterPage() {
     setLoading(false);
 
     if (result.success) {
-      toast.success('Account created successfully! Please log in.');
+      if (result.needsConfirmation) {
+        toast.success('Account created! Please check your email inbox to confirm your account before logging in.', { duration: 6000 });
+      } else {
+        toast.success('Account created successfully! Please log in.');
+      }
       router.push('/login');
     } else {
       toast.error(result.error || 'Registration failed. Please try again.');

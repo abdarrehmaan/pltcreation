@@ -17,10 +17,15 @@ export default function LoginPage() {
 
   const isButtonDisabled = !form.email || !form.password || loading;
 
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const resendConfirmationEmail = useAuthStore((state) => state.resendConfirmationEmail);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isButtonDisabled) return;
 
+    setUnconfirmedEmail(null);
     setLoading(true);
     const result = await login(form.email, form.password);
     setLoading(false);
@@ -29,7 +34,23 @@ export default function LoginPage() {
       toast.success('Successfully logged in!');
       router.push('/account');
     } else {
+      if (result.needsConfirmation) {
+        setUnconfirmedEmail(form.email);
+      }
       toast.error(result.error || 'Login failed. Please check your credentials.');
+    }
+  };
+
+  const handleResend = async () => {
+    if (!unconfirmedEmail && !form.email) return;
+    const targetEmail = unconfirmedEmail || form.email;
+    setResending(true);
+    const res = await resendConfirmationEmail(targetEmail);
+    setResending(false);
+    if (res.success) {
+      toast.success(`Confirmation link resent to ${targetEmail}`);
+    } else {
+      toast.error(res.error || 'Failed to resend confirmation email');
     }
   };
 
@@ -42,7 +63,22 @@ export default function LoginPage() {
           <p className="text-xs tracking-[0.3em] uppercase text-gray-400 mb-10">Ethnic Couture</p>
 
           <h1 className="font-display text-2xl font-bold text-gray-900 mb-1">Login to Continue</h1>
-          <p className="text-gray-500 text-sm mb-8">Use Your Registered Mobile Number</p>
+          <p className="text-gray-500 text-sm mb-8">Use Your Registered Mobile Number or Email</p>
+
+          {unconfirmedEmail && (
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-800 text-xs leading-relaxed space-y-2">
+              <p className="font-bold">⚠️ Email Confirmation Required</p>
+              <p>Your email <strong>{unconfirmedEmail}</strong> has not been confirmed yet. Please check your email inbox and click the confirmation link.</p>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending}
+                className="font-bold text-amber-900 underline hover:text-amber-700 focus:outline-none"
+              >
+                {resending ? 'Sending link...' : 'Resend confirmation email'}
+              </button>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
@@ -53,7 +89,7 @@ export default function LoginPage() {
                 required
                 value={form.email}
                 onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                placeholder="priya@example.com"
+                placeholder="priya@example.com or 9876543210"
                 className="input-base bg-blue-50/20 focus:bg-white"
               />
             </div>
@@ -102,6 +138,7 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+
 
       {/* Right: Brand visual */}
       <div
