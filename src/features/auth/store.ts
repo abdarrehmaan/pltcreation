@@ -29,12 +29,31 @@ export const useAuthStore = create<AuthState>()(
         try {
           const cleanInput = emailOrPhone.trim();
           const isEmail = cleanInput.includes('@');
+          let targetEmail = cleanInput.toLowerCase();
 
-          const signInCredentials = isEmail
-            ? { email: cleanInput.toLowerCase(), password }
-            : { phone: cleanInput, password };
+          // If input is a phone number, resolve the registered email from Prisma DB
+          if (!isEmail) {
+            try {
+              const lookupRes = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ emailOrPhone: cleanInput }),
+              });
+              if (lookupRes.ok) {
+                const lookupData = await lookupRes.json();
+                if (lookupData?.user?.email) {
+                  targetEmail = lookupData.user.email;
+                }
+              }
+            } catch (lookupErr) {
+              console.error('Failed to resolve email from phone number:', lookupErr);
+            }
+          }
 
-          const { data, error } = await supabase.auth.signInWithPassword(signInCredentials);
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: targetEmail,
+            password,
+          });
 
           if (error) {
             const isUnconfirmed = error.message.toLowerCase().includes('email not confirmed');
