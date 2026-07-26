@@ -13,8 +13,8 @@ export default function BrandStory() {
             {/* Main Image */}
             <div className="relative aspect-[4/5] w-[85%] rounded-[2rem] overflow-hidden shadow-2xl">
               <Image 
-                src="https://images.unsplash.com/photo-1560507074-b9eb43faab00?w=800&auto=format&fit=crop&q=80" 
-                alt="Artisan crafting embroidery"
+                src="/banner-chikankari.jpg" 
+                alt="Artisan Chikankari Craftsmanship"
                 fill
                 className="object-cover"
               />
@@ -23,7 +23,7 @@ export default function BrandStory() {
             {/* Floating Image */}
             <div className="absolute -bottom-10 -right-4 w-1/2 aspect-square rounded-[2rem] overflow-hidden shadow-2xl border-8 border-[#120003]">
               <Image 
-                src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=800&auto=format&fit=crop&q=80" 
+                src="/banner-stitched.jpg" 
                 alt="Intricate chikankari details"
                 fill
                 className="object-cover"

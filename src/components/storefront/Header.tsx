@@ -121,8 +121,8 @@ export default function Header({ featuredProducts = [] }: { featuredProducts?: a
         className={cn(
           'sticky top-0 z-50 w-full transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)]',
           isScrolled
-            ? 'bg-black/40 backdrop-blur-xl shadow-glass border-b border-white/10 py-1'
-            : 'bg-transparent py-3 border-b border-transparent'
+            ? 'bg-black/80 backdrop-blur-xl shadow-glass border-b border-white/10 py-1'
+            : 'bg-gradient-to-b from-black/80 via-black/30 to-transparent py-3 border-b border-transparent'
         )}
       >
         <div className="container-plt">
