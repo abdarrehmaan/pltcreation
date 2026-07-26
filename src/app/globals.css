@@ -184,13 +184,15 @@ h1, h2, h3, .heading-serif {
 
 .btn-secondary {
   @apply inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full font-semibold text-sm border-2 transition-all duration-300;
-  border-color: var(--brand-primary);
-  color: var(--brand-primary);
+  border-color: var(--gold);
+  color: var(--gold);
 }
 
 .btn-secondary:hover {
-  background: var(--brand-primary);
-  @apply text-white transform -translate-y-0.5;
+  background: var(--gold);
+  color: #1a0007;
+  @apply transform -translate-y-0.5;
+  box-shadow: 0 4px 20px rgba(201, 168, 76, 0.35);
 }
 
 .btn-gold {

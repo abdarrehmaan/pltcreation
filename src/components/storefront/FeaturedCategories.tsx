@@ -92,7 +92,7 @@ export default function FeaturedCategories({ categories }: { categories: Feature
         </motion.div>
 
         {/* View all */}
-        <div className="text-center mt-10">
+        <div className="text-center mt-14 md:mt-20 pt-6">
           <Link href="/categories" className="btn-secondary">
             Browse All Categories <ArrowRight size={16} />
           </Link>
