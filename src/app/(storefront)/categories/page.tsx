@@ -9,11 +9,12 @@ export const metadata: Metadata = {
 };
 
 const defaultImages: Record<string, string> = {
-  'chikankari': 'https://images.unsplash.com/photo-1583391733958-d25e07fac044?auto=format&fit=crop&q=80&w=800',
-  'coord-sets': 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&q=80&w=800',
-  'kurtis': 'https://images.unsplash.com/photo-1610419993549-88af5ccb186b?auto=format&fit=crop&q=80&w=800',
-  'stitched-suits': 'https://images.unsplash.com/photo-1590403328225-b44c0422c505?auto=format&fit=crop&q=80&w=800',
-  'unstitched-suits': 'https://images.unsplash.com/photo-1579456381220-e4b788470a13?auto=format&fit=crop&q=80&w=800',
+  'chikankari': '/banner-chikankari.jpg',
+  'coord-sets': '/banner-coord.png',
+  'dresses': '/banner-dresses.jpg',
+  'kurtis': '/banner-kurti.jpg',
+  'stitched-suits': '/banner-stitched.jpg',
+  'unstitched-suits': '/banner-unstitched.jpg',
 };
 
 export const dynamic = 'force-dynamic';

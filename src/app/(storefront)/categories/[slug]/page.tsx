@@ -7,32 +7,37 @@ const defaultMeta: Record<string, { name: string; description: string; image: st
   chikankari: {
     name: 'Chikankari',
     description: 'Handcrafted with love — exquisite Chikankari embroidery that celebrates the artistry of Lucknow.',
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=80',
+    image: '/banner-chikankari.jpg',
   },
   'coord-sets': {
     name: 'Co-ord Sets',
     description: 'Modern ethnic fusion — effortlessly chic co-ord sets for every occasion.',
-    image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=1600&q=80',
+    image: '/banner-coord.png',
+  },
+  dresses: {
+    name: 'Dresses',
+    description: 'Elegant ethnic and fusion dresses designed for modern sophistication.',
+    image: '/banner-dresses.jpg',
   },
   kurtis: {
     name: 'Kurtis',
     description: 'From casual days to festive nights — the perfect kurti for every moment.',
-    image: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1600&q=80',
+    image: '/banner-kurti.jpg',
   },
   'stitched-suits': {
     name: 'Stitched Suits',
     description: 'Ready-to-wear premium suits crafted for the modern Indian woman.',
-    image: 'https://images.unsplash.com/photo-1594938298603-c8148c4b1dd8?w=1600&q=80',
+    image: '/banner-stitched.jpg',
   },
   'unstitched-suits': {
     name: 'Unstitched Suits',
     description: 'Premium fabrics and materials — stitch them exactly to your measurements.',
-    image: 'https://images.unsplash.com/photo-1614251055880-ee96e4803393?w=1600&q=80',
+    image: '/banner-unstitched.jpg',
   },
   sale: {
     name: 'Sale Collection',
     description: 'Incredible deals on premium ethnic wear — up to 50% off!',
-    image: 'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=1600&q=80',
+    image: '/banner4.png',
   },
 };
 

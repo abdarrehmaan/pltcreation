@@ -87,10 +87,19 @@ export default async function HomePage() {
       },
     });
 
+    const localCategoryImages: Record<string, string> = {
+      chikankari: '/banner-chikankari.jpg',
+      'coord-sets': '/banner-coord.png',
+      dresses: '/banner-dresses.jpg',
+      kurtis: '/banner-kurti.jpg',
+      'stitched-suits': '/banner-stitched.jpg',
+      'unstitched-suits': '/banner-unstitched.jpg',
+    };
+
     categories = categoriesDb.map((c) => ({
       name: c.name,
       slug: c.slug,
-      image: c.image || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80',
+      image: c.image || localCategoryImages[c.slug] || '/banner-dresses.jpg',
       count: `${c._count.products} Styles`,
     }));
   } catch (error) {

@@ -13,11 +13,12 @@ async function main() {
   try {
     // 1. Seed Categories
     const categoriesData = [
-      { name: 'Chikankari', slug: 'chikankari', description: 'Handcrafted Chikankari work on premium fabrics', image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80' },
-      { name: 'Co-ord Sets', slug: 'coord-sets', description: 'Elegant matching top and bottom sets', image: 'https://images.unsplash.com/photo-1608748010899-18f300247112?w=600&auto=format&fit=crop&q=80' },
-      { name: 'Kurtis', slug: 'kurtis', description: 'Casual and festive ethnic kurtis', image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=600&auto=format&fit=crop&q=80' },
-      { name: 'Stitched Suits', slug: 'stitched-suits', description: 'Fully stitched premium salwar suit sets', image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&auto=format&fit=crop&q=80' },
-      { name: 'Unstitched Suits', slug: 'unstitched-suits', description: 'Unstitched suit materials for custom fitting', image: 'https://images.unsplash.com/photo-1612336307429-8a898d10e223?w=600&auto=format&fit=crop&q=80' },
+      { name: 'Chikankari', slug: 'chikankari', description: 'Handcrafted Chikankari work on premium fabrics', image: '/banner-chikankari.jpg' },
+      { name: 'Co-ord Sets', slug: 'coord-sets', description: 'Elegant matching top and bottom sets', image: '/banner-coord.png' },
+      { name: 'Dresses', slug: 'dresses', description: 'Elegant ethnic and fusion dresses designed for modern sophistication', image: '/banner-dresses.jpg' },
+      { name: 'Kurtis', slug: 'kurtis', description: 'Casual and festive ethnic kurtis', image: '/banner-kurti.jpg' },
+      { name: 'Stitched Suits', slug: 'stitched-suits', description: 'Fully stitched premium salwar suit sets', image: '/banner-stitched.jpg' },
+      { name: 'Unstitched Suits', slug: 'unstitched-suits', description: 'Unstitched suit materials for custom fitting', image: '/banner-unstitched.jpg' },
     ];
 
     const categories = {};
