@@ -481,7 +481,7 @@ export default function Header({ featuredProducts = [] }: { featuredProducts?: a
               )}
               <div className="text-xs text-gray-500 font-medium pt-2">
                 <p className="flex items-center gap-2 mb-2"><Phone size={14} className="text-brand-500" /> +91 98765 43210</p>
-                <p className="flex items-center gap-2"><Mail size={14} className="text-brand-500" /> concierge@pltcreation.in</p>
+                <p className="flex items-center gap-2"><Mail size={14} className="text-brand-500" /> pltcreation.in@gmail.com</p>
               </div>
             </div>
           </div>

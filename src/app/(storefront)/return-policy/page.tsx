@@ -59,7 +59,7 @@ export default function ReturnPolicyPage() {
         </div>
         <div className="mt-10 p-6 bg-ivory-100 rounded-2xl">
           <p className="font-semibold text-gray-900 mb-1">Questions?</p>
-          <p className="text-sm text-gray-600">Contact us at <a href="mailto:returns@pltcreation.in" className="text-brand-600 hover:underline">returns@pltcreation.in</a> or call us at +91 98765 43210.</p>
+          <p className="text-sm text-gray-600">Contact us at <a href="mailto:pltcreation.in@gmail.com" className="text-brand-600 hover:underline">pltcreation.in@gmail.com</a> or call us at +91 98765 43210.</p>
         </div>
       </div>
     </div>

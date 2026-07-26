@@ -112,7 +112,7 @@ export default function Footer() {
               <div className="flex gap-4">
                 <Mail size={18} className="text-brand-500 mt-1 flex-shrink-0" />
                 <div>
-                  <p className="text-sm text-white font-medium mb-1">concierge@pltcreation.in</p>
+                  <p className="text-sm text-white font-medium mb-1">pltcreation.in@gmail.com</p>
                   <p className="text-xs text-gray-500 uppercase tracking-wider">24/7 Support</p>
                 </div>
               </div>

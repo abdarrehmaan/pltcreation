@@ -22,9 +22,9 @@ export default function PrivacyPolicyPage() {
         <h2 className="font-display text-xl font-bold text-gray-900 mt-8 mb-3">Information Security</h2>
         <p>We use industry-standard SSL encryption for all transactions. Payment information is processed securely through Razorpay and never stored on our servers.</p>
         <h2 className="font-display text-xl font-bold text-gray-900 mt-8 mb-3">Your Rights</h2>
-        <p>You can request access to, correction of, or deletion of your personal data by contacting us at privacy@pltcreation.in.</p>
+        <p>You can request access to, correction of, or deletion of your personal data by contacting us at pltcreation.in@gmail.com.</p>
         <h2 className="font-display text-xl font-bold text-gray-900 mt-8 mb-3">Contact Us</h2>
-        <p>For privacy-related queries: <a href="mailto:privacy@pltcreation.in" className="text-brand-600">privacy@pltcreation.in</a></p>
+        <p>For privacy-related queries: <a href="mailto:pltcreation.in@gmail.com" className="text-brand-600">pltcreation.in@gmail.com</a></p>
       </div>
     </div>
   );

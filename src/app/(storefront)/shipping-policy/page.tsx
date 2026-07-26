@@ -7,7 +7,7 @@ export default function ShippingPolicyPage() {
     { title: 'Shipping Partners', content: 'We ship via reputed logistics partners including Blue Dart, Delhivery, and Ecom Express to ensure timely and safe delivery of your orders.' },
     { title: 'Order Processing', content: 'Orders are processed within 24-48 hours of placement. Orders placed on weekends or public holidays will be processed the next working day.' },
     { title: 'Tracking Your Order', content: 'Once your order is shipped, you will receive a tracking ID via SMS and email. You can also track your order from the My Orders section in your account.' },
-    { title: 'Delivery Issues', content: 'If you face any delivery issues, please contact us at support@pltcreation.in or call +91 98765 43210. We will resolve it within 24 hours.' },
+    { title: 'Delivery Issues', content: 'If you face any delivery issues, please contact us at pltcreation.in@gmail.com or call +91 98765 43210. We will resolve it within 24 hours.' },
   ];
   return (
     <div className="bg-white min-h-screen">

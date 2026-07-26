@@ -42,7 +42,7 @@ export default function RefundPolicyPage() {
             <p className="mb-4 leading-relaxed">Then contact your credit card company, it may take some time before your refund is officially posted.</p>
             <p className="leading-relaxed">Next contact your bank. There is often some processing time before a refund is posted.</p>
             <p className="mt-4 leading-relaxed">
-              If you've done all of this and you still have not received your refund yet, please contact us at <a href="mailto:support@pltcreation.in" className="text-brand-600 hover:underline">support@pltcreation.in</a>.
+              If you've done all of this and you still have not received your refund yet, please contact us at <a href="mailto:pltcreation.in@gmail.com" className="text-brand-600 hover:underline">pltcreation.in@gmail.com</a>.
             </p>
           </section>
         </div>

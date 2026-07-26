@@ -23,7 +23,7 @@ export default function ContactPage() {
             <div className="space-y-6">
               {[
                 { Icon: Phone, label: 'Phone', value: '+91 98765 43210', sub: 'Mon–Sat, 10am–7pm IST' },
-                { Icon: Mail, label: 'Email', value: 'hello@pltcreation.in', sub: 'We reply within 24 hours' },
+                { Icon: Mail, label: 'Email', value: 'pltcreation.in@gmail.com', sub: 'We reply within 24 hours' },
                 { Icon: MapPin, label: 'Location', value: 'Prayagraj, Uttar Pradesh', sub: 'India' },
                 { Icon: Clock, label: 'Business Hours', value: 'Monday – Saturday', sub: '10:00 AM – 7:00 PM IST' },
               ].map(({ Icon, label, value, sub }) => (

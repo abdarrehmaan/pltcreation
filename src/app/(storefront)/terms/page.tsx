@@ -18,7 +18,7 @@ export default function TermsPage() {
         <h2 className="font-display text-xl font-bold text-gray-900 mt-8 mb-3">Intellectual Property</h2>
         <p>All content on this website, including images, text, logos, and design, is the intellectual property of PLT Creation and may not be reproduced without written permission.</p>
         <h2 className="font-display text-xl font-bold text-gray-900 mt-8 mb-3">Contact</h2>
-        <p>For queries: <a href="mailto:legal@pltcreation.in" className="text-brand-600">legal@pltcreation.in</a></p>
+        <p>For queries: <a href="mailto:pltcreation.in@gmail.com" className="text-brand-600">pltcreation.in@gmail.com</a></p>
       </div>
     </div>
   );
