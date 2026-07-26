@@ -19,7 +19,7 @@ export default function OfferBanner() {
               src="/banner-chikankari.jpg"
               alt="Chikankari Collection Offer"
               fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, 50vw"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-brand-900/80 to-brand-700/40" />
@@ -49,7 +49,7 @@ export default function OfferBanner() {
                 src="/banner-coord.png"
                 alt="New Arrivals"
                 fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-purple-900/80 to-purple-700/40" />
@@ -71,7 +71,7 @@ export default function OfferBanner() {
                 src="/banner-dresses.jpg"
                 alt="Sale Collection"
                 fill
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
                 sizes="(max-width: 768px) 100vw, 50vw"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-red-900/80 to-red-700/40" />

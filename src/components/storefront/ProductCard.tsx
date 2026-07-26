@@ -116,7 +116,7 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
             alt={images[imageIdx]?.alt || product.name}
             fill
             className={cn(
-              "object-cover transition-transform duration-700 ease-out",
+              "object-cover object-top transition-transform duration-700 ease-out",
               isHovered ? "scale-105" : "scale-100"
             )}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"

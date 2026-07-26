@@ -54,7 +54,7 @@ export default function CollectionsBanner({ collections }: { collections: Collec
                   src={col.bannerImage || `https://picsum.photos/seed/${col.id}/800/800`}
                   alt={col.name}
                   fill
-                  className="object-cover transition-transform duration-1000 ease-out group-hover:scale-105"
+                  className="object-cover object-top transition-transform duration-1000 ease-out group-hover:scale-105"
                   sizes={isFeatured ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 100vw, 33vw"}
                 />
                 

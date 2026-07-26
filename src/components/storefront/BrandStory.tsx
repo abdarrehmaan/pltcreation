@@ -16,7 +16,7 @@ export default function BrandStory() {
                 src="/banner-chikankari.jpg" 
                 alt="Artisan Chikankari Craftsmanship"
                 fill
-                className="object-cover"
+                className="object-cover object-top"
                 sizes="(max-width: 1024px) 80vw, 40vw"
               />
             </div>
@@ -27,7 +27,7 @@ export default function BrandStory() {
                 src="/banner-stitched.jpg" 
                 alt="Intricate chikankari details"
                 fill
-                className="object-cover"
+                className="object-cover object-top"
                 sizes="(max-width: 1024px) 50vw, 25vw"
               />
             </div>
