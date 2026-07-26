@@ -26,29 +26,50 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (emailOrPhone, password) => {
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email: emailOrPhone.trim().toLowerCase(),
-            password: password,
-          });
+          const cleanInput = emailOrPhone.trim();
+          const isEmail = cleanInput.includes('@');
+
+          const signInCredentials = isEmail
+            ? { email: cleanInput.toLowerCase(), password }
+            : { phone: cleanInput, password };
+
+          const { data, error } = await supabase.auth.signInWithPassword(signInCredentials);
 
           if (error) {
             return { success: false, error: error.message };
           }
 
           if (data?.user) {
-            // Fetch public profile details from Prisma API
-            const res = await fetch(`/api/auth/user?id=${data.user.id}`);
+            // Fetch or sync public profile details from Prisma API
+            let res = await fetch(`/api/auth/user?id=${data.user.id}`);
             let profile = null;
+
             if (res.ok) {
               const profileData = await res.json();
               profile = profileData.user;
+            } else if (res.status === 404) {
+              // Sync missing profile to Prisma DB
+              const syncRes = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  id: data.user.id,
+                  name: data.user.user_metadata?.name || '',
+                  email: data.user.email || '',
+                  phone: data.user.user_metadata?.phone || '',
+                }),
+              });
+              if (syncRes.ok) {
+                const syncData = await syncRes.json();
+                profile = syncData.user;
+              }
             }
 
             const userSession: User = {
               id: data.user.id,
               name: profile?.name || data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
-              email: data.user.email!,
-              phone: profile?.phone || data.user.phone || '',
+              email: data.user.email || profile?.email || '',
+              phone: profile?.phone || data.user.user_metadata?.phone || data.user.phone || '',
               role: profile?.role || 'CUSTOMER',
             };
 
@@ -64,14 +85,17 @@ export const useAuthStore = create<AuthState>()(
 
       register: async (name, email, phone, password) => {
         try {
-          // Sign up user in Supabase Auth (the DB trigger will sync to public users and wallets tables)
+          const cleanEmail = email.trim().toLowerCase();
+          const cleanName = name.trim();
+          const cleanPhone = phone.trim();
+
           const { data, error } = await supabase.auth.signUp({
-            email: email.trim().toLowerCase(),
+            email: cleanEmail,
             password,
             options: {
               data: {
-                name: name.trim(),
-                phone: phone.trim(),
+                name: cleanName,
+                phone: cleanPhone,
               },
             },
           });
@@ -81,6 +105,22 @@ export const useAuthStore = create<AuthState>()(
           }
 
           if (data?.user) {
+            // Explicitly sync profile and create wallet in Prisma PostgreSQL database
+            try {
+              await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  id: data.user.id,
+                  name: cleanName,
+                  email: cleanEmail,
+                  phone: cleanPhone,
+                }),
+              });
+            } catch (syncErr) {
+              console.error('Failed to sync user profile to DB:', syncErr);
+            }
+
             return { success: true };
           }
 
@@ -105,3 +145,4 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+

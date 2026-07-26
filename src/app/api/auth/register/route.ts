@@ -15,32 +15,28 @@ export async function POST(request: Request) {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = phone?.trim() || null;
 
-    // Check if user already exists in the public database
-    const existingUser = await prisma.user.findUnique({
+    // Upsert user profile matching Supabase Auth ID
+    const user = await prisma.user.upsert({
       where: { id },
-    });
-
-    if (existingUser) {
-      return NextResponse.json(
-        { message: 'User profile already synced', user: existingUser },
-        { status: 200 }
-      );
-    }
-
-    // Create the user profile in the public table matching the Supabase Auth ID
-    const user = await prisma.user.create({
-      data: {
-        id, // Map 1:1 to Supabase Auth User ID
+      update: {
+        name: name?.trim() || undefined,
+        email: cleanEmail,
+        phone: cleanPhone || undefined,
+      },
+      create: {
+        id,
         name: name?.trim() || null,
         email: cleanEmail,
         phone: cleanPhone,
-        role: 'CUSTOMER', // Default role
+        role: 'CUSTOMER',
       },
     });
 
-    // Create user wallet (used for store credit)
-    await prisma.wallet.create({
-      data: {
+    // Ensure user wallet exists (used for store credit)
+    await prisma.wallet.upsert({
+      where: { userId: user.id },
+      update: {},
+      create: {
         userId: user.id,
         balance: 0.0,
       },
@@ -67,3 +63,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

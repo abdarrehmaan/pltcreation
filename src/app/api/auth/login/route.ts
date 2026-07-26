@@ -1,21 +1,20 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
   try {
-    const { emailOrPhone, password } = await request.json();
+    const { emailOrPhone } = await request.json();
 
-    if (!emailOrPhone || !password) {
+    if (!emailOrPhone) {
       return NextResponse.json(
-        { error: 'Email/phone and password are required fields' },
+        { error: 'Email or phone number is required' },
         { status: 400 }
       );
     }
 
     const cleanInput = emailOrPhone.trim().toLowerCase();
 
-    // Find user by email or phone
+    // Find user by email or phone in public database
     const user = await prisma.user.findFirst({
       where: {
         OR: [
@@ -25,25 +24,16 @@ export async function POST(request: Request) {
       },
     });
 
-    if (!user || !user.password) {
+    if (!user) {
       return NextResponse.json(
-        { error: 'Invalid email/phone or password' },
-        { status: 401 }
-      );
-    }
-
-    // Verify password
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return NextResponse.json(
-        { error: 'Invalid email/phone or password' },
-        { status: 401 }
+        { error: 'User not found in public database' },
+        { status: 404 }
       );
     }
 
     return NextResponse.json(
       {
-        message: 'Login successful',
+        message: 'User found',
         user: {
           id: user.id,
           name: user.name,
@@ -55,10 +45,11 @@ export async function POST(request: Request) {
       { status: 200 }
     );
   } catch (error: any) {
-    console.error('Login error:', error);
+    console.error('Login lookup error:', error);
     return NextResponse.json(
-      { error: error.message || 'An error occurred during login' },
+      { error: error.message || 'An error occurred during user lookup' },
       { status: 500 }
     );
   }
 }
+
