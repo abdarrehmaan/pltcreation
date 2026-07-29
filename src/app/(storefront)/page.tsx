@@ -10,7 +10,6 @@ import BrandStory from '@/components/storefront/BrandStory';
 import { ReviewCard } from '@/components/storefront/ReviewCard';
 import { mockReviews } from '@/lib/mock-data';
 import CollectionsBanner from '@/components/storefront/CollectionsBanner';
-import OfferBanner from '@/components/storefront/OfferBanner';
 import { prisma } from '@/lib/prisma';
 
 export const metadata: Metadata = {
@@ -142,9 +141,6 @@ export default async function HomePage() {
 
       {/* Brand Story */}
       <BrandStory />
-
-      {/* Rakshabandhan Festive Showcase Banner */}
-      <OfferBanner />
 
       {/* New Arrivals (Editorial Layout) */}
       <section id="new-arrivals" className="py-12 md:py-24 bg-transparent relative">
