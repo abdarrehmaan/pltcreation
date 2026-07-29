@@ -13,8 +13,7 @@ interface Collection {
 }
 
 export default function CollectionsBanner({ collections }: { collections: Collection[] }) {
-  // Take up to 3 collections for the editorial layout
-  const displayCols = collections.slice(0, 3);
+  const displayCols = collections;
 
   return (
     <section id="collections" className="section-padding bg-ivory-50 relative overflow-hidden">
@@ -36,61 +35,49 @@ export default function CollectionsBanner({ collections }: { collections: Collec
           </Link>
         </div>
 
-        {/* Asymmetrical Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 lg:gap-8 h-auto md:h-[600px] lg:h-[700px]">
+        {/* Collections Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {displayCols.map((col, i) => {
-            const isFeatured = i === 0; // First item is larger
             return (
               <Link
                 key={col.id}
                 href={`/collections/${col.slug}`}
                 id={`collection-${col.slug}`}
-                className={cn(
-                  "relative rounded-2xl md:rounded-[2rem] overflow-hidden group block",
-                  isFeatured ? "md:col-span-7 lg:col-span-8 h-[400px] md:h-full" : "md:col-span-5 lg:col-span-4 h-[300px] md:h-full"
-                )}
+                className="relative rounded-2xl md:rounded-[2rem] overflow-hidden group block h-[380px] md:h-[450px] shadow-md hover:shadow-2xl transition-all duration-500"
               >
                 <Image
                   src={col.bannerImage || `https://picsum.photos/seed/${col.id}/800/800`}
                   alt={col.name}
                   fill
                   className="object-cover object-top transition-transform duration-1000 ease-out group-hover:scale-105"
-                  sizes={isFeatured ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 100vw, 33vw"}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
                 
                 {/* Gradient Overlays */}
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-950/90 via-gray-900/30 to-transparent opacity-85 group-hover:opacity-95 transition-opacity duration-500" />
                 
                 {/* Content Overlay */}
-                <div className={cn(
-                  "absolute inset-x-0 bottom-0 p-6 md:p-8 lg:p-12 transition-all duration-500 ease-apple translate-y-4 group-hover:translate-y-0",
-                )}>
+                <div className="absolute inset-x-0 bottom-0 p-6 md:p-8 transition-all duration-500 ease-apple translate-y-2 group-hover:translate-y-0">
                   <div className="overflow-hidden mb-2">
-                    <h3 className={cn(
-                      "font-display font-bold text-white leading-tight",
-                      isFeatured ? "text-3xl md:text-5xl" : "text-2xl md:text-3xl"
-                    )}>
+                    <h3 className="font-display font-bold text-white text-2xl md:text-3xl leading-tight">
                       {col.name}
                     </h3>
                   </div>
                   
                   {col.description && (
                     <div className="overflow-hidden">
-                      <p className={cn(
-                        "text-gray-200 font-light max-w-md transition-all duration-500 ease-apple opacity-0 -translate-y-4 group-hover:opacity-100 group-hover:translate-y-0",
-                        isFeatured ? "text-base md:text-lg mb-6" : "text-sm mb-4"
-                      )}>
+                      <p className="text-gray-200 font-light text-sm line-clamp-2 mb-4 opacity-90 group-hover:opacity-100 transition-opacity">
                         {col.description}
                       </p>
                     </div>
                   )}
 
-                  <div className="inline-flex items-center gap-2 text-sm uppercase tracking-widest font-bold text-white bg-white/20 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/30 group-hover:bg-white group-hover:text-gray-900 transition-all duration-300">
-                    Explore <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  <div className="inline-flex items-center gap-2 text-xs uppercase tracking-widest font-bold text-white bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30 group-hover:bg-white group-hover:text-gray-900 transition-all duration-300">
+                    Explore Collection <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </Link>
-            )
+            );
           })}
         </div>
       </div>

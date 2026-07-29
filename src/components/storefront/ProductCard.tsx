@@ -14,6 +14,7 @@ interface Product {
   id: string;
   name: string;
   slug: string;
+  description?: string;
   price: number;
   comparePrice?: number;
   images?: { url: string; alt?: string }[];
@@ -208,9 +209,16 @@ export default function ProductCard({ product, priority = false }: ProductCardPr
         </Link>
         
         {/* Category */}
-        <p className="text-xs text-gray-500 uppercase tracking-widest mb-3">
+        <p className="text-xs text-gray-500 uppercase tracking-widest mb-1.5">
           {product.category?.name || 'Couture'}
         </p>
+
+        {/* Short Description (Optional) */}
+        {product.description && (
+          <p className="text-xs text-gray-500 line-clamp-2 mb-2 font-normal leading-relaxed">
+            {product.description}
+          </p>
+        )}
 
         {/* Price */}
         <div className="flex items-center gap-2.5">

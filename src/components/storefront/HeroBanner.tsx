@@ -9,6 +9,17 @@ import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from
 const slides = [
   {
     id: 1,
+    image: '/rakshabandhan-banner.png',
+    tag: 'Rakshabandhan Special',
+    title: 'Celebrate Traditions in Style',
+    subtitle: 'Beautiful Suits for Every Sister — Crafted with love, timeless traditions, and elegant fabrics.',
+    cta: 'Explore Rakhi Collection',
+    ctaHref: '/products?search=suit',
+    align: 'left',
+    isGraphic: true,
+  },
+  {
+    id: 2,
     image: '/banner1.jpg',
     tag: 'New Season Collection',
     title: 'Elegance Redefined',
@@ -18,7 +29,7 @@ const slides = [
     align: 'left',
   },
   {
-    id: 2,
+    id: 3,
     image: '/banner2.png',
     tag: 'Festive Collection',
     title: 'Stunning Co-ord Sets For Every Occasion',
@@ -28,7 +39,7 @@ const slides = [
     align: 'right',
   },
   {
-    id: 3,
+    id: 4,
     image: '/banner3.png',
     tag: 'Everyday Luxury',
     title: 'Premium Kurtis & Suits',
@@ -88,7 +99,7 @@ export default function HeroBanner() {
       onMouseLeave={() => { mouseX.set(0); mouseY.set(0); }}
     >
       {/* Immersive Background Images with Parallax */}
-      <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] md:absolute md:inset-[-5%] md:w-auto md:h-auto z-0 shrink-0 overflow-hidden">
+      <div className={`relative w-full ${slide.isGraphic ? 'aspect-[16/9]' : 'aspect-[4/3] sm:aspect-[16/9]'} md:absolute md:inset-[-5%] md:w-auto md:h-auto z-0 shrink-0 overflow-hidden`}>
         <AnimatePresence custom={direction} initial={false}>
           <motion.div
             key={slide.id}
@@ -103,13 +114,13 @@ export default function HeroBanner() {
               src={slide.image}
               alt={slide.title}
               fill
-              className="object-cover object-center"
+              className={slide.isGraphic ? 'object-contain md:object-cover object-center' : 'object-cover object-center'}
               priority
               sizes="100vw"
               unoptimized={slide.image.startsWith('/')}
             />
-            {/* Gradient Overlays for Readability and Luxury feel */}
-            <div className={`absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent md:bg-gradient-to-${slide.align === 'left' ? 'r' : 'l'} md:from-gray-900/90 md:via-gray-900/50 md:to-transparent z-10`} />
+            {/* Gradient Overlays for Readability */}
+            <div className={`absolute inset-0 bg-gradient-to-t from-gray-950 via-transparent to-transparent ${slide.isGraphic ? 'opacity-60 md:opacity-40' : ''} md:bg-gradient-to-${slide.align === 'left' ? 'r' : 'l'} md:from-gray-900/90 md:via-gray-900/50 md:to-transparent z-10`} />
             <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 via-transparent to-gray-900/40 z-10 hidden md:block" />
           </motion.div>
         </AnimatePresence>

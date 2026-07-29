@@ -16,7 +16,7 @@ import { prisma } from '@/lib/prisma';
 export const metadata: Metadata = {
   title: 'PLT Creation — Premium Women\'s Ethnic Wear | Chikankari, Kurtis & More',
   description:
-    'Discover PLT Creation\'s exquisite collection of Chikankari, Kurtis, Co-ord Sets, Stitched & Unstitched Suits. Free shipping above ₹1499. Easy 48-hour returns.',
+    'Discover PLT Creation\'s exquisite collection of Chikankari, Kurtis, Co-ord Sets, Stitched & Unstitched Suits. Free shipping above ₹1499. No exchange & no return policy.',
 };
 
 export default async function HomePage() {
@@ -38,6 +38,7 @@ export default async function HomePage() {
       id: p.id,
       name: p.name,
       slug: p.slug,
+      description: p.description || undefined,
       price: Number(p.price),
       comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
       totalStock: p.totalStock,
@@ -106,6 +107,7 @@ export default async function HomePage() {
     console.warn('HomePage categories query warning:', error);
   }
 
+  const featuredAllProducts = formattedProducts.slice(0, 8);
   const newArrivals = formattedProducts.filter((p) => p.isNewArrival).slice(0, 4);
   const trending = formattedProducts.filter((p) => p.isTrending).slice(0, 4);
   const bestSellers = formattedProducts.filter((p) => p.isBestSeller).slice(0, 4);
@@ -115,10 +117,33 @@ export default async function HomePage() {
       {/* Hero */}
       <HeroBanner />
 
+      {/* All Products Section (Featured Preview) */}
+      <section id="all-products" className="py-12 md:py-20 bg-transparent relative border-b border-white/10">
+        <div className="container-plt">
+          <SectionHeader
+            tag="Featured Showcase"
+            title="All Products"
+            subtitle="Explore a selection of our handcrafted luxury ethnic wear."
+            viewAllHref="/all-products"
+            viewAllLabel="View Entire Catalog"
+          />
+          <ProductGrid products={featuredAllProducts} columns={4} />
+          
+          <div className="mt-10 text-center">
+            <a
+              href="/all-products"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-white text-gray-900 font-semibold text-sm shadow-md hover:bg-gray-100 hover:scale-105 transition-all duration-300"
+            >
+              Explore All Products ({formattedProducts.length}) →
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Brand Story */}
       <BrandStory />
 
-      {/* Offer Banner */}
+      {/* Rakshabandhan Festive Showcase Banner */}
       <OfferBanner />
 
       {/* New Arrivals (Editorial Layout) */}

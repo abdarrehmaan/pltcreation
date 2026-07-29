@@ -23,15 +23,14 @@ const paymentMethods = [
   { id: 'card', label: 'Credit/Debit Card', icon: CreditCard, desc: 'Visa, Mastercard, RuPay' },
   { id: 'netbanking', label: 'Net Banking', icon: Building2, desc: 'All major banks' },
   { id: 'cod', label: 'Cash on Delivery', icon: Truck, desc: 'Pay when delivered' },
-  { id: 'exchange', label: 'Exchange', icon: RefreshCcw, desc: 'Exchange an existing item' },
 ];
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, getSubtotal, couponDiscount, couponCode } = useCartStore();
+  const { items, getSubtotal } = useCartStore();
   const subtotal = getSubtotal();
-  const shipping = calculateShipping(subtotal - couponDiscount);
-  const total = subtotal - couponDiscount + shipping;
+  const shipping = calculateShipping(subtotal);
+  const total = subtotal + shipping;
 
   const user = useAuthStore((s) => s.user);
   const [paymentMethod, setPaymentMethod] = useState('upi');
@@ -52,7 +51,7 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
-  const prepaidDiscount = !['cod', 'exchange'].includes(paymentMethod) ? Math.round(total * 0.05) : 0;
+  const prepaidDiscount = paymentMethod !== 'cod' ? Math.round(total * 0.05) : 0;
   const finalTotal = total - prepaidDiscount;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -87,10 +86,10 @@ export default function CheckoutPage() {
           items,
           subtotal,
           shippingCharge: shipping,
-          discount: couponDiscount,
+          discount: 0,
           total,
-          couponCode,
-          couponDiscount,
+          couponCode: null,
+          couponDiscount: 0,
           prepaidDiscount,
         }),
       });
@@ -218,7 +217,7 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                {!['cod', 'exchange'].includes(paymentMethod) && (
+                {paymentMethod !== 'cod' && (
                   <div className="mt-4 p-3 bg-emerald-50 rounded-xl flex items-center gap-2">
                     <Shield size={14} className="text-emerald-600" />
                     <p className="text-xs text-emerald-700 font-medium">
@@ -266,18 +265,12 @@ export default function CheckoutPage() {
                  <div className="space-y-2.5 text-sm">
                    <div className="flex justify-between text-gray-650 font-medium">
                      <span>Product Price (GST Included)</span>
-                     <span>{formatPrice(subtotal - couponDiscount - prepaidDiscount)}</span>
+                     <span>{formatPrice(subtotal - prepaidDiscount)}</span>
                    </div>
                    <div className="flex justify-between text-gray-400 text-xs pl-3">
                      <span>GST Amount (5% Included)</span>
-                     <span>{formatPrice((subtotal - couponDiscount - prepaidDiscount) * 0.05 / 1.05)}</span>
+                     <span>{formatPrice((subtotal - prepaidDiscount) * 0.05 / 1.05)}</span>
                    </div>
-                   {couponDiscount > 0 && (
-                     <div className="flex justify-between text-emerald-600 text-xs pl-3">
-                       <span>Coupon Discount ({couponCode})</span>
-                       <span>-{formatPrice(couponDiscount)}</span>
-                     </div>
-                   )}
                    {prepaidDiscount > 0 && (
                      <div className="flex justify-between text-emerald-600 text-xs pl-3">
                        <span>Prepaid Discount (5%)</span>

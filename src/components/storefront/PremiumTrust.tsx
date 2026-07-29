@@ -20,8 +20,8 @@ export default function PremiumTrust() {
     },
     {
       icon: RefreshCcw,
-      title: "Easy 48h Returns",
-      desc: "Hassle-free returns and exchanges within 48 hours.",
+      title: "Quality Assurance",
+      desc: "100% Quality Inspected before dispatch.",
     },
     {
       icon: PackageCheck,

@@ -1,87 +1,61 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Tag, ArrowRight } from 'lucide-react';
+import { Sparkles, Heart, ArrowRight } from 'lucide-react';
 
 export default function OfferBanner() {
   return (
-    <section className="py-10 bg-[#0e0002]">
+    <section className="py-8 md:py-16 bg-transparent relative z-10">
       <div className="container-plt">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Offer 1 */}
-          <Link
-            href="/categories/chikankari"
-            id="offer-chikankari"
-            className="relative rounded-3xl overflow-hidden group block"
-            style={{ minHeight: '240px' }}
-          >
+        <div className="relative rounded-2xl md:rounded-3xl overflow-hidden border border-gold-500/30 shadow-2xl bg-gray-950 group">
+          {/* 16:9 Aspect Ratio Image Container — Fits 100% on Mobile & Laptop without cropping */}
+          <div className="relative w-full aspect-[16/9] overflow-hidden bg-black flex items-center justify-center">
             <Image
-              src="/banner-chikankari.jpg"
-              alt="Chikankari Collection Offer"
+              src="/rakshabandhan-banner.png"
+              alt="PLT Creation Rakshabandhan Collection — Beautiful Suits for Every Sister"
               fill
-              className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-contain md:object-cover object-center group-hover:scale-102 transition-transform duration-700 ease-out"
+              priority
+              unoptimized
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-brand-900/80 to-brand-700/40" />
-            <div className="absolute inset-0 flex flex-col justify-center p-8">
-              <div className="flex items-center gap-2 mb-3">
-                <Tag size={14} className="text-gold-300" />
-                <span className="text-gold-300 text-xs font-bold uppercase tracking-wider">Limited Time Offer</span>
+
+            {/* Subtle Gradient & Floating CTA for Laptop / Tablet */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end justify-between p-4 sm:p-6 md:p-8">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-gold-500/40 text-gold-300 text-xs font-bold uppercase tracking-widest">
+                <Sparkles size={14} className="animate-pulse text-gold-400" />
+                <span>Festive Edition • Rakshabandhan</span>
               </div>
-              <h3 className="font-display text-2xl md:text-3xl font-bold text-white mb-2">
-                Up to 40% Off<br />Chikankari
-              </h3>
-              <p className="text-white/75 text-sm mb-4">Handcrafted elegance at unbeatable prices</p>
-              <span className="inline-flex items-center gap-2 text-sm font-semibold text-gold-300 group-hover:gap-3 transition-all">
-                Shop Now <ArrowRight size={14} />
-              </span>
+
+              <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-3">
+                <Link
+                  href="/collections"
+                  className="w-full sm:w-auto btn-gold text-xs md:text-sm px-6 md:px-8 py-3 md:py-3.5 uppercase tracking-widest font-bold flex items-center justify-center gap-2 shadow-gold transition-all duration-300 hover:scale-105"
+                >
+                  <Heart size={16} fill="currentColor" />
+                  <span>Shop Rakhi Collection</span>
+                  <ArrowRight size={16} />
+                </Link>
+              </div>
             </div>
-          </Link>
+          </div>
 
-          {/* Offer 2 */}
-          <div className="grid grid-rows-2 gap-5">
+          {/* Mobile CTA Bar below image so zero graphic content is blocked */}
+          <div className="sm:hidden p-4 bg-gray-900/90 border-t border-white/10 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-gold-300 flex items-center gap-1.5">
+                <Sparkles size={13} /> Rakshabandhan Collection
+              </span>
+              <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Limited Festive Edition</span>
+            </div>
             <Link
-              href="/new-arrivals"
-              id="offer-new-arrivals"
-              className="relative rounded-3xl overflow-hidden group block"
+              href="/collections"
+              className="w-full btn-gold text-xs py-3 uppercase tracking-widest font-bold flex items-center justify-center gap-2 shadow-gold"
             >
-              <Image
-                src="/banner-coord.png"
-                alt="New Arrivals"
-                fill
-                className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-900/80 to-purple-700/40" />
-              <div className="absolute inset-0 flex flex-col justify-center p-6">
-                <span className="text-purple-200 text-xs font-bold uppercase tracking-wider mb-2">🆕 Just Arrived</span>
-                <h3 className="font-display text-xl font-bold text-white mb-1">New Co-ord Sets</h3>
-                <span className="inline-flex items-center gap-2 text-sm font-semibold text-white/80 group-hover:text-white transition-colors">
-                  Explore <ArrowRight size={13} />
-                </span>
-              </div>
-            </Link>
-
-            <Link
-              href="/categories/sale"
-              id="offer-sale"
-              className="relative rounded-3xl overflow-hidden group block"
-            >
-              <Image
-                src="/banner-dresses.jpg"
-                alt="Sale Collection"
-                fill
-                className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-red-900/80 to-red-700/40" />
-              <div className="absolute inset-0 flex flex-col justify-center p-6">
-                <span className="text-red-200 text-xs font-bold uppercase tracking-wider mb-2">🔥 Hot Sale</span>
-                <h3 className="font-display text-xl font-bold text-white mb-1">Sale Collection — Up to 50% Off</h3>
-                <span className="inline-flex items-center gap-2 text-sm font-semibold text-white/80 group-hover:text-white transition-colors">
-                  Grab Deals <ArrowRight size={13} />
-                </span>
-              </div>
+              <Heart size={14} fill="currentColor" />
+              <span>Shop Collection Now</span>
+              <ArrowRight size={14} />
             </Link>
           </div>
         </div>

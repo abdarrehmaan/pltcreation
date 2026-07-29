@@ -470,10 +470,24 @@ export default function ProductDetailClient({
                 <Truck size={16} className="text-brand-500 flex-shrink-0" />
                 <span>Free delivery on orders above ₹1499 · Estimated 3-5 business days</span>
               </div>
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <RotateCcw size={16} className="text-brand-500 flex-shrink-0" />
-                <span>Easy returns within 48 hours of delivery</span>
+              <div className="flex items-center gap-3 text-sm text-gray-800 font-semibold">
+                <RotateCcw size={16} className="text-red-600 flex-shrink-0" />
+                <span>No Returns · No Refunds · No Exchanges</span>
               </div>
+            </div>
+
+            {/* Mandatory Support & Unboxing Notice Box */}
+            <div className="mt-5 p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-950 space-y-2">
+              <p className="font-semibold text-gray-900 leading-relaxed">
+                💬 <strong>Customer Support:</strong> For any kind of issue, please call us or send a message on WhatsApp at{' '}
+                <a href="https://wa.me/916392006081" target="_blank" rel="noopener noreferrer" className="font-bold text-brand-700 underline">
+                  +91 63920 06081
+                </a>
+                . Our team will contact you within 24 hours.
+              </p>
+              <p className="font-semibold text-red-900 pt-1.5 border-t border-amber-200/60">
+                🎥 <strong>Mandatory Notice:</strong> For any product-related issue, a 360-degree unboxing video is mandatory for verification.
+              </p>
             </div>
           </div>
         </div>

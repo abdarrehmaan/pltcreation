@@ -9,30 +9,11 @@ import { formatPrice, calculateShipping } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, couponCode, couponDiscount, applyCoupon, removeCoupon, getSubtotal } = useCartStore();
-  const [couponInput, setCouponInput] = useState('');
-  const [couponLoading, setCouponLoading] = useState(false);
+  const { items, removeItem, updateQuantity, getSubtotal } = useCartStore();
 
   const subtotal = getSubtotal();
-  const shipping = calculateShipping(subtotal - couponDiscount);
-  const discount = couponDiscount;
-  const total = subtotal - discount + shipping;
-
-  const handleApplyCoupon = async () => {
-    if (!couponInput.trim()) return;
-    setCouponLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    if (couponInput.toUpperCase() === 'PLT CREATION10') {
-      applyCoupon('PLT CREATION10', Math.round(subtotal * 0.1));
-      toast.success('Coupon applied! 10% discount added.');
-    } else if (couponInput.toUpperCase() === 'NEWUSER') {
-      applyCoupon('NEWUSER', 200);
-      toast.success('Coupon applied! ₹200 off added.');
-    } else {
-      toast.error('Invalid coupon code. Try PLT CREATION10 or NEWUSER.');
-    }
-    setCouponLoading(false);
-  };
+  const shipping = calculateShipping(subtotal);
+  const total = subtotal + shipping;
 
   if (items.length === 0) {
     return (
@@ -107,39 +88,6 @@ export default function CartPage() {
 
           {/* Order summary */}
           <div className="space-y-4">
-            {/* Coupon */}
-            <div className="bg-white rounded-2xl p-5 shadow-card">
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2"><Tag size={16} className="text-brand-600" /> Coupon Code</h3>
-              {couponCode ? (
-                <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-                  <div>
-                    <p className="text-sm font-bold text-emerald-700">{couponCode}</p>
-                    <p className="text-xs text-emerald-600">-{formatPrice(couponDiscount)} saved!</p>
-                  </div>
-                  <button onClick={removeCoupon} className="text-xs text-red-500 hover:underline">Remove</button>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Enter coupon code"
-                    value={couponInput}
-                    onChange={(e) => setCouponInput(e.target.value)}
-                    className="input-base flex-1 py-2 text-sm"
-                    onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
-                  />
-                  <button
-                    onClick={handleApplyCoupon}
-                    disabled={couponLoading}
-                    className="btn-primary px-4 py-2 text-sm flex-shrink-0 disabled:opacity-60"
-                  >
-                    {couponLoading ? '...' : 'Apply'}
-                  </button>
-                </div>
-              )}
-              <p className="text-xs text-gray-400 mt-2">Try: PLT CREATION10 (10% off) or NEWUSER (₹200 off)</p>
-            </div>
-
             {/* Summary */}
             <div className="bg-white rounded-2xl p-5 shadow-card">
               <h3 className="font-semibold text-gray-900 mb-4">Order Summary</h3>
@@ -148,12 +96,6 @@ export default function CartPage() {
                   <span>Subtotal ({items.reduce((s,i) => s+i.quantity,0)} items)</span>
                   <span>{formatPrice(subtotal)}</span>
                 </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-emerald-600">
-                    <span>Coupon Discount</span>
-                    <span>-{formatPrice(discount)}</span>
-                  </div>
-                )}
                 <div className="flex justify-between text-gray-600">
                   <span className="flex items-center gap-1"><Truck size={13} /> Shipping</span>
                   <span className={shipping === 0 ? 'text-emerald-600 font-semibold' : ''}>
@@ -161,7 +103,7 @@ export default function CartPage() {
                   </span>
                 </div>
                 {shipping > 0 && (
-                  <p className="text-xs text-gray-400">Add {formatPrice(1499 - (subtotal - discount))} more for free shipping</p>
+                  <p className="text-xs text-gray-400">Add {formatPrice(1499 - subtotal)} more for free shipping</p>
                 )}
                 <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-gray-900 text-base">
                   <span>Total</span>

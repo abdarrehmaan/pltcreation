@@ -11,6 +11,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
     include: {
       images: true,
       variants: true,
+      collections: true,
     },
   });
 
@@ -25,6 +26,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
     sku: product.sku,
     description: product.description || '',
     categoryId: product.categoryId,
+    collectionId: product.collections[0]?.collectionId || '',
     price: Number(product.price),
     comparePrice: product.comparePrice ? Number(product.comparePrice) : undefined,
     isActive: product.isActive,

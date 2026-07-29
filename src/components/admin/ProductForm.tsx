@@ -17,6 +17,7 @@ const productSchema = z.object({
   sku: z.string().min(3, 'SKU is required'),
   description: z.string().optional(),
   categoryId: z.string().min(1, 'Category is required'),
+  collectionId: z.string().optional(),
   price: z.coerce.number().min(0, 'Price must be positive'),
   comparePrice: z.coerce.number().optional(),
   isActive: z.boolean(),
@@ -45,6 +46,7 @@ const slugify = (text: string) => {
 export default function ProductForm({ initialData }: ProductFormProps) {
   const router = useRouter();
   const [categories, setCategories] = useState<any[]>([]);
+  const [collections, setCollections] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<{ url: string; alt: string; color?: string }[]>(
     initialData?.images || []
@@ -55,6 +57,7 @@ export default function ProductForm({ initialData }: ProductFormProps) {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema) as any,
     defaultValues: initialData || {
+      collectionId: '',
       isActive: true,
       isFeatured: false,
       isNewArrival: false,
@@ -189,18 +192,26 @@ export default function ProductForm({ initialData }: ProductFormProps) {
   }, [variantStock, sizes, colors, setValue, hasVariants]);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch('/api/admin/categories');
-        const json = await res.json();
-        if (res.ok) {
-          setCategories(json.categories || []);
+        const [catRes, colRes] = await Promise.all([
+          fetch('/api/admin/categories'),
+          fetch('/api/admin/collections'),
+        ]);
+        const catJson = await catRes.json();
+        const colJson = await colRes.json();
+
+        if (catRes.ok) {
+          setCategories(catJson.categories || []);
+        }
+        if (colRes.ok) {
+          setCollections(colJson.collections || []);
         }
       } catch (err) {
-        console.error('Failed to fetch categories:', err);
+        console.error('Failed to fetch categories or collections:', err);
       }
     };
-    fetchCategories();
+    fetchData();
   }, []);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -654,6 +665,16 @@ export default function ProductForm({ initialData }: ProductFormProps) {
                   ))}
                 </select>
                 {errors.categoryId && <p className="text-red-500 text-xs mt-1">{errors.categoryId.message}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Collection</label>
+                <select {...register('collectionId')} className="input-base bg-white">
+                  <option value="">Select Collection (Optional)</option>
+                  {collections.map((col) => (
+                    <option key={col.id} value={col.id}>{col.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>

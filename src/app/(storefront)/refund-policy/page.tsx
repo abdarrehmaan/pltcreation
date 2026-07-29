@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Ban, MessageSquare, Video } from 'lucide-react';
 
 export const metadata: Metadata = {
-  title: 'Refund Policy',
-  description: 'PLT Creation refund policy — how we process refunds for returned items.',
+  title: 'Refund Policy — PLT Creation',
+  description: 'PLT Creation official refund policy: No Refunds, No Returns, and No Exchanges.',
 };
 
 export default function RefundPolicyPage() {
@@ -12,39 +12,52 @@ export default function RefundPolicyPage() {
     <div className="bg-white min-h-screen">
       <div className="py-16 text-center" style={{ background: 'linear-gradient(135deg, #6B2D4F 0%, #C4748A 100%)' }}>
         <h1 className="font-display text-4xl font-bold text-white mb-2">Refund Policy</h1>
-        <p className="text-white/70">Last updated: June 2026</p>
+        <p className="text-white/80">Official Store Policy Notice</p>
       </div>
+
       <div className="container-plt py-12 max-w-3xl">
         <Link href="/return-policy" className="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 font-medium mb-8">
-          <ArrowLeft size={18} /> View full Return Policy
+          <ArrowLeft size={18} /> View Store Policy
         </Link>
-        <div className="space-y-8 text-gray-700">
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Refund Process</h2>
-            <p className="mb-4 leading-relaxed">
-              Once your return is received and inspected by our quality check team, we will send you an email to notify you that we have received your returned item. We will also notify you of the approval or rejection of your refund.
-            </p>
-            <p className="leading-relaxed">
-              If you are approved, your refund will be processed. By default, refunds are issued as <strong>PLT Creation Store Credit</strong>, which is instantly added to your account and never expires.
-            </p>
-          </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Original Payment Methods</h2>
-            <p className="leading-relaxed">
-              If you request a refund to your original payment method, please allow <strong>5-7 business days</strong> for the credit to appear on your statement. Processing times may vary depending on your bank or credit card issuer. Shipping costs are non-refundable.
-            </p>
-          </section>
+        {/* Policy Box */}
+        <div className="bg-red-50 border-2 border-red-200 rounded-3xl p-8 mb-10 text-center">
+          <Ban size={36} className="text-red-600 mx-auto mb-3" />
+          <h2 className="font-display font-extrabold text-2xl text-red-600 mb-2">NO REFUNDS · NO RETURNS · NO EXCHANGES</h2>
+          <p className="text-sm text-gray-700 leading-relaxed max-w-lg mx-auto font-medium">
+            All purchases made at PLT Creation are final. We do not issue monetary refunds or product exchanges under any ordinary circumstances.
+          </p>
+        </div>
 
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">Late or Missing Refunds</h2>
-            <p className="mb-4 leading-relaxed">If you haven't received a refund yet, first check your bank account again.</p>
-            <p className="mb-4 leading-relaxed">Then contact your credit card company, it may take some time before your refund is officially posted.</p>
-            <p className="leading-relaxed">Next contact your bank. There is often some processing time before a refund is posted.</p>
-            <p className="mt-4 leading-relaxed">
-              If you've done all of this and you still have not received your refund yet, please contact us at <a href="mailto:pltcreation.in@gmail.com" className="text-brand-600 hover:underline">pltcreation.in@gmail.com</a>.
-            </p>
-          </section>
+        {/* Mandatory Support & Verification Notice */}
+        <div className="bg-amber-50/70 border border-amber-200 rounded-3xl p-8 mb-10 space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-md">
+              <MessageSquare size={20} />
+            </div>
+            <div>
+              <h3 className="font-display font-bold text-gray-900 text-base mb-1">Customer Support</h3>
+              <p className="text-sm text-gray-800 leading-relaxed font-medium">
+                For any kind of issue, please call us or send a message on WhatsApp at{' '}
+                <a href="https://wa.me/916392006081" target="_blank" rel="noopener noreferrer" className="font-bold text-brand-700 underline">
+                  +91 63920 06081
+                </a>
+                . Our team will contact you within 24 hours.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-amber-200/80 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-red-600 text-white flex items-center justify-center flex-shrink-0 shadow-md">
+              <Video size={20} />
+            </div>
+            <div>
+              <h3 className="font-display font-bold text-gray-900 text-base mb-1">Mandatory Unboxing Video</h3>
+              <p className="text-sm text-gray-800 leading-relaxed font-medium">
+                For any product-related issue, a 360-degree unboxing video is mandatory for verification.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

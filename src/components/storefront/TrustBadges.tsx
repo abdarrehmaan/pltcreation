@@ -9,8 +9,8 @@ const badges = [
   },
   {
     Icon: RotateCcw,
-    title: 'Easy Returns',
-    description: 'Within 48 hours of delivery',
+    title: 'Quality Inspected',
+    description: '100% Quality Verified',
   },
   {
     Icon: ShieldCheck,

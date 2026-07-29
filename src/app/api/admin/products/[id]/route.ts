@@ -15,6 +15,7 @@ export async function GET(
       include: {
         images: true,
         variants: true,
+        collections: true,
       },
     });
 
@@ -24,6 +25,7 @@ export async function GET(
 
     const formattedProduct = {
       ...product,
+      collectionId: product.collections[0]?.collectionId || '',
       price: Number(product.price),
       comparePrice: product.comparePrice ? Number(product.comparePrice) : undefined,
       images: product.images.map((img) => ({ url: img.url, alt: img.alt || '', color: img.color || '' })),
@@ -55,6 +57,7 @@ export async function PUT(
       sku,
       description,
       categoryId,
+      collectionId,
       price,
       comparePrice,
       isActive,
@@ -86,6 +89,17 @@ export async function PUT(
           totalStock: totalStock || 0,
         },
       });
+
+      // Update collection relationship
+      await tx.collectionProduct.deleteMany({ where: { productId: id } });
+      if (collectionId) {
+        await tx.collectionProduct.create({
+          data: {
+            productId: id,
+            collectionId,
+          },
+        });
+      }
 
       await tx.productImage.deleteMany({ where: { productId: id } });
       if (images && images.length > 0) {

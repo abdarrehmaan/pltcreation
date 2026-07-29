@@ -24,15 +24,12 @@ const navSections = [
       { label: 'Saved Products', href: '/admin/saved-products', icon: Heart },
       { label: 'Categories', href: '/admin/categories', icon: Grid3X3 },
       { label: 'Collections', href: '/admin/collections', icon: Tag },
-      { label: 'Offers', href: '/admin/offers', icon: Gift },
     ],
   },
   {
     label: 'Commerce',
     items: [
       { label: 'Orders', href: '/admin/orders', icon: ShoppingCart },
-      { label: 'Coupons', href: '/admin/coupons', icon: TicketPercent },
-      { label: 'Returns', href: '/admin/returns', icon: RotateCcw },
     ],
   },
   {

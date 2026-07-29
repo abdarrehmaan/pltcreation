@@ -38,10 +38,38 @@ export default function Header({ featuredProducts = [] }: { featuredProducts?: a
   const [catOpen, setCatOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [liveSearchResults, setLiveSearchResults] = useState<any[]>([]);
+  const [liveSearchCategories, setLiveSearchCategories] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [cartPreviewOpen, setCartPreviewOpen] = useState(false);
   
   const searchRef = useRef<HTMLInputElement>(null);
   const cartTimer = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setLiveSearchResults([]);
+      setLiveSearchCategories([]);
+      setIsSearching(false);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          setLiveSearchResults(data.products || []);
+          setLiveSearchCategories(data.categories || []);
+        }
+      } catch (err) {
+        console.error('Search fetch error:', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -322,17 +350,18 @@ export default function Header({ featuredProducts = [] }: { featuredProducts?: a
 
         {/* Smart Search Bar */}
         {searchOpen && (
-          <div className="absolute top-full left-0 w-full bg-white/95 backdrop-blur-2xl shadow-card-hover border-t border-gray-100 py-8 animate-fade-down z-40">
+          <div className="absolute top-full left-0 w-full bg-white/98 backdrop-blur-2xl shadow-2xl border-t border-gray-200 py-8 animate-fade-down z-50 text-gray-900">
             <div className="container-plt">
               <div className="max-w-3xl mx-auto">
-                <div className="relative">
-                  <Search size={24} className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-600" />
+                <div className="relative flex items-center">
+                  <Search size={22} className="absolute left-4 text-brand-600 pointer-events-none z-10" />
                   <input
                     ref={searchRef}
                     id="search-input"
                     type="text"
                     placeholder="Search for designer suits, chikankari..."
-                    className="w-full pl-14 pr-12 py-5 bg-gray-50/50 border border-gray-200 rounded-2xl text-lg font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                    style={{ paddingLeft: '52px', paddingRight: '48px' }}
+                    className="w-full py-4 bg-gray-50 border border-gray-300 rounded-2xl text-base md:text-lg font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:bg-white focus:border-brand-500 transition-all shadow-sm"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
@@ -342,43 +371,130 @@ export default function Header({ featuredProducts = [] }: { featuredProducts?: a
                       if (e.key === 'Escape') setSearchOpen(false);
                     }}
                   />
-                  <button
-                    className="absolute right-5 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors"
-                    onClick={() => setSearchOpen(false)}
-                  >
-                    <X size={16} />
-                  </button>
+                  {searchQuery ? (
+                    <button
+                      className="absolute right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors z-10"
+                      onClick={() => setSearchQuery('')}
+                      aria-label="Clear search query"
+                    >
+                      <X size={16} />
+                    </button>
+                  ) : (
+                    <button
+                      className="absolute right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors z-10"
+                      onClick={() => setSearchOpen(false)}
+                      aria-label="Close search"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
                 </div>
                 
-                {/* Suggestions */}
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div>
-                    <h3 className="flex items-center gap-2 text-xs uppercase tracking-widest font-bold text-gray-500 mb-4">
-                      <TrendingUp size={14} /> Trending Searches
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {['White Chikankari', 'Party Wear Sets', 'Summer Collection', 'Anarkali Suits', 'Floral Kurtis'].map(term => (
-                        <button key={term} onClick={() => setSearchQuery(term)} className="px-4 py-2 rounded-full bg-gray-100 hover:bg-brand-50 hover:text-brand-700 text-sm font-medium text-gray-700 transition-colors">
-                          {term}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-xs uppercase tracking-widest font-bold text-gray-500 mb-4">Featured Products</h3>
-                    <div className="space-y-3">
-                      {featuredProducts.slice(0, 3).map(p => (
-                        <Link key={p.id} href={`/products/${p.slug}`} onClick={() => setSearchOpen(false)} className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors group">
-                          <img src={p.images[0]?.url} alt={p.name} className="w-12 h-12 rounded object-cover" />
-                          <div>
-                            <p className="text-sm font-semibold text-gray-900 group-hover:text-brand-600 transition-colors line-clamp-1">{p.name}</p>
-                            <p className="text-xs text-gray-500">{formatPrice(p.price)}</p>
+                {/* Live search results or default suggestions */}
+                {searchQuery.trim() ? (
+                  <div className="mt-6 space-y-6">
+                    {isSearching && (
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest animate-pulse">
+                        Searching products...
+                      </p>
+                    )}
+
+                    {!isSearching && liveSearchCategories.length > 0 && (
+                      <div>
+                        <h4 className="text-xs uppercase tracking-widest font-bold text-gray-400 mb-3">Matching Categories</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {liveSearchCategories.map((cat) => (
+                            <Link
+                              key={cat.id}
+                              href={`/categories/${cat.slug}`}
+                              onClick={() => setSearchOpen(false)}
+                              className="px-3.5 py-1.5 rounded-full bg-brand-50 text-brand-700 hover:bg-brand-100 text-xs font-semibold transition-colors border border-brand-100"
+                            >
+                              {cat.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {!isSearching && (
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-xs uppercase tracking-widest font-bold text-gray-400">Matching Products</h4>
+                          {liveSearchResults.length > 0 && (
+                            <Link
+                              href={`/products?search=${encodeURIComponent(searchQuery.trim())}`}
+                              onClick={() => setSearchOpen(false)}
+                              className="text-xs font-semibold text-brand-600 hover:underline"
+                            >
+                              View all results ({liveSearchResults.length}) &rarr;
+                            </Link>
+                          )}
+                        </div>
+
+                        {liveSearchResults.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            {liveSearchResults.map((p) => (
+                              <Link
+                                key={p.id}
+                                href={`/products/${p.slug}`}
+                                onClick={() => setSearchOpen(false)}
+                                className="flex items-center gap-3 p-3 rounded-2xl border border-gray-100 bg-white hover:border-brand-200 hover:shadow-md transition-all group"
+                              >
+                                <img src={p.image} alt={p.name} className="w-14 h-14 rounded-xl object-cover shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-semibold text-gray-900 group-hover:text-brand-600 transition-colors line-clamp-1">
+                                    {p.name}
+                                  </p>
+                                  <p className="text-[11px] text-gray-400">{p.categoryName}</p>
+                                  <p className="text-xs font-bold text-brand-700 mt-0.5">{formatPrice(p.price)}</p>
+                                </div>
+                              </Link>
+                            ))}
                           </div>
-                        </Link>
-                      ))}
+                        ) : (
+                          <div className="py-6 text-center text-sm text-gray-500 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                            No products found matching &ldquo;<span className="font-semibold text-gray-800">{searchQuery}</span>&rdquo;.
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Default Trending & Featured Suggestions */
+                  <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                      <h3 className="flex items-center gap-2 text-xs uppercase tracking-widest font-bold text-gray-400 mb-4">
+                        <TrendingUp size={14} className="text-brand-600" /> Trending Searches
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {['White Chikankari', 'Party Wear Sets', 'Summer Collection', 'Anarkali Suits', 'Floral Kurtis'].map(term => (
+                          <button
+                            key={term}
+                            onClick={() => setSearchQuery(term)}
+                            className="px-4 py-2 rounded-full bg-gray-100 hover:bg-brand-50 hover:text-brand-700 text-sm font-medium text-gray-700 transition-colors border border-gray-200/60"
+                          >
+                            {term}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="text-xs uppercase tracking-widest font-bold text-gray-400 mb-4">Featured Products</h3>
+                      <div className="space-y-3">
+                        {featuredProducts.slice(0, 3).map(p => (
+                          <Link key={p.id} href={`/products/${p.slug}`} onClick={() => setSearchOpen(false)} className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 transition-colors group">
+                            <img src={p.images[0]?.url} alt={p.name} className="w-12 h-12 rounded object-cover" />
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900 group-hover:text-brand-600 transition-colors line-clamp-1">{p.name}</p>
+                              <p className="text-xs text-gray-500">{formatPrice(p.price)}</p>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
               </div>
             </div>

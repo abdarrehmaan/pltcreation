@@ -52,6 +52,7 @@ export async function POST(request: Request) {
       sku,
       description,
       categoryId,
+      collectionId,
       price,
       comparePrice,
       isActive,
@@ -89,6 +90,16 @@ export async function POST(request: Request) {
           totalStock: totalStock || 0,
         },
       });
+
+      // Insert collection relation if provided
+      if (collectionId) {
+        await tx.collectionProduct.create({
+          data: {
+            productId: product.id,
+            collectionId,
+          },
+        });
+      }
 
       // Insert images if provided
       if (images && images.length > 0) {

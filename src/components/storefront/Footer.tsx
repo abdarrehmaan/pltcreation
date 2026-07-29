@@ -84,9 +84,9 @@ export default function Footer() {
               {[
                 { label: 'Contact Concierge', href: '/contact' },
                 { label: 'Shipping & Delivery', href: '/shipping-policy' },
-                { label: 'Returns & Exchanges', href: '/return-policy' },
+                { label: 'Return & Refund Policy', href: '/return-policy' },
                 { label: 'Size Guide', href: '/size-guide' },
-                { label: 'Track Your Order', href: '/account/orders' },
+                { label: 'Track Your Order', href: '/track-order' },
                 { label: 'FAQ', href: '/faq' },
               ].map(({ label, href }) => (
                 <li key={label}>
@@ -105,7 +105,7 @@ export default function Footer() {
               <div className="flex gap-4">
                 <Phone size={18} className="text-brand-500 mt-1 flex-shrink-0" />
                 <div>
-                  <p className="text-sm text-white font-medium mb-1">+91 98765 43210</p>
+                  <p className="text-sm text-white font-medium mb-1">+91 63920 06081</p>
                   <p className="text-xs text-gray-500 uppercase tracking-wider">Mon–Sat, 10am–7pm IST</p>
                 </div>
               </div>

@@ -89,7 +89,7 @@ export default function LoginPage() {
                 required
                 value={form.email}
                 onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                placeholder="priya@example.com or 9876543210"
+                placeholder="priya@example.com or 6392006081"
                 className="input-base bg-blue-50/20 focus:bg-white"
               />
             </div>

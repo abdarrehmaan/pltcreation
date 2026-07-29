@@ -76,7 +76,7 @@ export default function ContactForm() {
             className="input-base bg-white border-gray-200 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 rounded-xl"
           >
             <option>Order Query</option>
-            <option>Return Request</option>
+            <option>Product / Order Support</option>
             <option>Product Inquiry</option>
             <option>Payment Issue</option>
             <option>Other</option>

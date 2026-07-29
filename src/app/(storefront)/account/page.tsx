@@ -8,11 +8,10 @@ import { useAuthStore } from '@/features/auth/store';
 import toast from 'react-hot-toast';
 
 const accountLinks = [
-  { label: 'My Orders', desc: 'Track, return or buy again', icon: Package, href: '/account/orders' },
+  { label: 'My Orders', desc: 'View & track order status', icon: Package, href: '/account/orders' },
   { label: 'My Wishlist', desc: 'Saved for later', icon: Heart, href: '/wishlist' },
   { label: 'Saved Addresses', desc: 'Manage delivery addresses', icon: MapPin, href: '/account/addresses' },
-  { label: 'My Wallet', desc: 'Store credit & refunds', icon: Wallet, href: '/account/wallet' },
-  { label: 'Return Requests', desc: 'Track your returns', icon: RotateCcw, href: '/account/returns' },
+  { label: 'My Wallet', desc: 'Store credit & wallet balance', icon: Wallet, href: '/account/wallet' },
   { label: 'Profile Settings', desc: 'Manage personal info', icon: User, href: '/account/profile' },
 ];
 
