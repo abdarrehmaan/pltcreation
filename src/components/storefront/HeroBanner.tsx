@@ -14,7 +14,7 @@ const slides = [
     title: 'Celebrate Traditions in Style',
     subtitle: 'Beautiful Suits for Every Sister — Crafted with love, timeless traditions, and elegant fabrics.',
     cta: 'Explore Rakhi Collection',
-    ctaHref: '/products?search=suit',
+    ctaHref: '/collections/rakshabandhan-collection-outfits',
     align: 'left',
     isGraphic: true,
   },

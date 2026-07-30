@@ -720,8 +720,41 @@ h1, h2, h3, .heading-serif {
   background-color: rgba(245, 158, 11, 0.1) !important;
   border-color: rgba(245, 158, 11, 0.2) !important;
 }
-.storefront-main .text-amber-700,
-.storefront-main .text-amber-600 {
-  color: #fbbf24 !important;
+/* ============================================================
+   TAX INVOICE PAPER BILL STRICT WHITE OVERRIDES
+   ============================================================ */
+.plt-bill-container,
+#plt-tax-invoice-bill {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
 }
+
+.plt-bill-container *,
+#plt-tax-invoice-bill *:not(.bg-black):not(.bg-black *) {
+  color: #000000 !important;
+  border-color: #000000 !important;
+}
+
+#plt-tax-invoice-bill table,
+#plt-tax-invoice-bill th,
+#plt-tax-invoice-bill td,
+#plt-tax-invoice-bill tr,
+#plt-tax-invoice-bill input,
+#plt-tax-invoice-bill textarea,
+#plt-tax-invoice-bill select,
+#plt-tax-invoice-bill div:not(.bg-black) {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+#plt-tax-invoice-bill .bg-black {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+#plt-tax-invoice-bill .bg-black * {
+  color: #ffffff !important;
+}
+
 

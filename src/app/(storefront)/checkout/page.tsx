@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Shield, Truck, CreditCard, Smartphone, Building2, Store, RefreshCcw } from 'lucide-react';
+import { ChevronRight, Shield, Truck, CreditCard, Smartphone, Building2, RefreshCw } from 'lucide-react';
 import { useCartStore } from '@/features/cart/store';
 import { useAuthStore } from '@/features/auth/store';
-import { formatPrice, calculateShipping } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
@@ -29,8 +29,15 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, getSubtotal } = useCartStore();
   const subtotal = getSubtotal();
-  const shipping = calculateShipping(subtotal);
-  const total = subtotal + shipping;
+
+  // Dynamic Site Settings from Admin DB
+  const [siteSettings, setSiteSettings] = useState({
+    prepaidDiscountPercent: 5,
+    codAdvancePercent: 0,
+    freeShippingThreshold: 999,
+    standardShippingCharge: 99,
+    taxPercent: 0,
+  });
 
   const user = useAuthStore((s) => s.user);
   const [paymentMethod, setPaymentMethod] = useState('upi');
@@ -39,6 +46,23 @@ export default function CheckoutPage() {
     fullName: '', phone: '', email: '', line1: '', line2: '',
     city: '', state: '', pincode: '',
   });
+
+  // Fetch dynamic site settings on load
+  useEffect(() => {
+    const fetchSiteSettings = async () => {
+      try {
+        const res = await fetch('/api/admin/settings');
+        const data = await res.json();
+        if (res.ok && data.settings) {
+          setSiteSettings(data.settings);
+        }
+      } catch (err) {
+        console.error('Failed to fetch checkout site settings:', err);
+      }
+    };
+
+    fetchSiteSettings();
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -51,8 +75,29 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
-  const prepaidDiscount = paymentMethod !== 'cod' ? Math.round(total * 0.05) : 0;
-  const finalTotal = total - prepaidDiscount;
+  // Dynamic Calculations using Admin Site Settings
+  const freeThreshold = Number(siteSettings.freeShippingThreshold || 999);
+  const standardShipping = Number(siteSettings.standardShippingCharge || 99);
+  const prepaidPercent = Number(siteSettings.prepaidDiscountPercent || 0);
+  const codAdvancePercent = Number(siteSettings.codAdvancePercent || 0);
+  const taxPercent = Number(siteSettings.taxPercent || 0);
+
+  const shipping = subtotal >= freeThreshold ? 0 : standardShipping;
+  const totalBeforeDiscount = subtotal + shipping;
+
+  const prepaidDiscount = paymentMethod !== 'cod' && prepaidPercent > 0
+    ? Math.round(totalBeforeDiscount * (prepaidPercent / 100))
+    : 0;
+
+  const finalTotal = Math.max(0, totalBeforeDiscount - prepaidDiscount);
+
+  // GST Calculation (Tax Included in Product Price or Added)
+  const gstAmount = taxPercent > 0
+    ? Math.round((subtotal - prepaidDiscount) * (taxPercent / (100 + taxPercent)))
+    : 0;
+
+  const codAdvanceAmount = Math.round(finalTotal * (codAdvancePercent / 100));
+  const codRemainingAmount = finalTotal - codAdvanceAmount;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -87,10 +132,11 @@ export default function CheckoutPage() {
           subtotal,
           shippingCharge: shipping,
           discount: 0,
-          total,
+          total: finalTotal,
           couponCode: null,
           couponDiscount: 0,
           prepaidDiscount,
+          codAdvanceAmount,
         }),
       });
 
@@ -205,8 +251,10 @@ export default function CheckoutPage() {
                         <p className="text-sm font-semibold text-gray-900">{label}</p>
                         <p className="text-xs text-gray-500">{desc}</p>
                       </div>
-                      {!['cod', 'exchange'].includes(id) && (
-                        <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">5% OFF</span>
+                      {id !== 'cod' && prepaidPercent > 0 && (
+                        <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+                          {prepaidPercent}% OFF
+                        </span>
                       )}
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                         paymentMethod === id ? 'border-brand-600' : 'border-gray-300'
@@ -221,7 +269,7 @@ export default function CheckoutPage() {
                   <div className="mt-4 p-3 bg-emerald-50 rounded-xl flex items-center gap-2">
                     <Shield size={14} className="text-emerald-600" />
                     <p className="text-xs text-emerald-700 font-medium">
-                      You save {formatPrice(prepaidDiscount)} extra with prepaid payment! 100% Secure via Razorpay.
+                      You save {formatPrice(prepaidDiscount)} extra with prepaid payment ({prepaidPercent}% OFF)! 100% Secure via Razorpay.
                     </p>
                   </div>
                 )}
@@ -229,7 +277,11 @@ export default function CheckoutPage() {
                   <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
                     <Shield size={16} className="text-amber-600 mt-0.5 flex-shrink-0" />
                     <p className="text-xs text-amber-800 font-medium">
-                      For COD orders, a 30% advance payment ({formatPrice(finalTotal * 0.30)}) is required to confirm your order. The remaining 70% ({formatPrice(finalTotal * 0.70)}) will be collected at the time of delivery.
+                      {codAdvancePercent > 0 ? (
+                        <>For COD orders, a {codAdvancePercent}% advance payment ({formatPrice(codAdvanceAmount)}) is required to confirm your order. The remaining {100 - codAdvancePercent}% ({formatPrice(codRemainingAmount)}) will be collected at delivery.</>
+                      ) : (
+                        <>Cash on delivery available. Pay total amount ({formatPrice(finalTotal)}) upon delivery.</>
+                      )}
                     </p>
                   </div>
                 )}
@@ -261,31 +313,50 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                 {/* Totals */}
-                 <div className="space-y-2.5 text-sm">
-                   <div className="flex justify-between text-gray-650 font-medium">
-                     <span>Product Price (GST Included)</span>
-                     <span>{formatPrice(subtotal - prepaidDiscount)}</span>
-                   </div>
-                   <div className="flex justify-between text-gray-400 text-xs pl-3">
-                     <span>GST Amount (5% Included)</span>
-                     <span>{formatPrice((subtotal - prepaidDiscount) * 0.05 / 1.05)}</span>
-                   </div>
-                   {prepaidDiscount > 0 && (
-                     <div className="flex justify-between text-emerald-600 text-xs pl-3">
-                       <span>Prepaid Discount (5%)</span>
-                       <span>-{formatPrice(prepaidDiscount)}</span>
-                     </div>
-                   )}
-                   <div className="flex justify-between text-gray-650 font-medium">
-                     <span>Delivery Charges</span>
-                     <span className={shipping === 0 ? 'text-emerald-600 font-semibold' : ''}>{shipping === 0 ? 'FREE' : formatPrice(shipping)}</span>
-                   </div>
-                   <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-gray-900 text-lg">
-                     <span>Final Payable Amount</span>
-                     <span>{formatPrice(finalTotal)}</span>
-                   </div>
-                 </div>
+                {/* Totals */}
+                <div className="space-y-2.5 text-sm">
+                  <div className="flex justify-between text-gray-650 font-medium">
+                    <span>Product Price ({taxPercent > 0 ? `GST ${taxPercent}% Included` : 'Tax Included'})</span>
+                    <span>{formatPrice(subtotal)}</span>
+                  </div>
+
+                  {taxPercent > 0 && (
+                    <div className="flex justify-between text-gray-400 text-xs pl-3">
+                      <span>GST Amount ({taxPercent}% Included)</span>
+                      <span>{formatPrice(gstAmount)}</span>
+                    </div>
+                  )}
+
+                  {prepaidDiscount > 0 && (
+                    <div className="flex justify-between text-emerald-600 text-xs pl-3">
+                      <span>Prepaid Discount ({prepaidPercent}%)</span>
+                      <span>-{formatPrice(prepaidDiscount)}</span>
+                    </div>
+                  )}
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-gray-650 font-medium">
+                      <span>Delivery Charges</span>
+                      <span className={shipping === 0 ? 'text-emerald-600 font-semibold' : 'text-gray-900 font-semibold'}>
+                        {shipping === 0 ? 'FREE' : formatPrice(shipping)}
+                      </span>
+                    </div>
+                    {shipping === 0 ? (
+                      <p className="text-[11px] text-emerald-600 font-medium pl-1">
+                        🎉 Unlocked FREE Shipping (Orders above {formatPrice(freeThreshold)})
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-amber-700 font-medium pl-1">
+                        Standard charge {formatPrice(standardShipping)}. Add {formatPrice(freeThreshold - subtotal)} more for FREE shipping!
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-gray-900 text-lg">
+                    <span>Final Payable Amount</span>
+                    <span>{formatPrice(finalTotal)}</span>
+                  </div>
+                </div>
 
                 <button
                   type="submit"

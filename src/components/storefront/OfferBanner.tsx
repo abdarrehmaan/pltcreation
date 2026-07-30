@@ -30,7 +30,7 @@ export default function OfferBanner() {
 
               <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-3">
                 <Link
-                  href="/collections"
+                  href="/collections/rakshabandhan-collection-outfits"
                   className="w-full sm:w-auto btn-gold text-xs md:text-sm px-6 md:px-8 py-3 md:py-3.5 uppercase tracking-widest font-bold flex items-center justify-center gap-2 shadow-gold transition-all duration-300 hover:scale-105"
                 >
                   <Heart size={16} fill="currentColor" />
@@ -50,7 +50,7 @@ export default function OfferBanner() {
               <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Limited Festive Edition</span>
             </div>
             <Link
-              href="/collections"
+              href="/collections/rakshabandhan-collection-outfits"
               className="w-full btn-gold text-xs py-3 uppercase tracking-widest font-bold flex items-center justify-center gap-2 shadow-gold"
             >
               <Heart size={14} fill="currentColor" />

@@ -79,7 +79,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <PrintInvoiceButton />
+          <PrintInvoiceButton orderNumber={order.orderNumber} />
           <div className="no-print">
             <OrderStatusUpdater orderId={order.id} currentStatus={order.status} />
           </div>

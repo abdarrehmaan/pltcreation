@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, FileText, ExternalLink } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
@@ -52,7 +52,6 @@ export default function AdminOrdersPage() {
     }).then(async (res) => {
       const data = await res.json();
       if (res.ok && data.success) {
-        // Refresh orders list
         await fetchOrders();
       } else {
         throw new Error(data.error || 'Failed to update order status');
@@ -167,15 +166,16 @@ export default function AdminOrdersPage() {
                   <th>Payment</th>
                   <th>Status</th>
                   <th>Date</th>
+                  <th>Invoice</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredOrders.map((o) => (
                   <tr key={o.id}>
-                      <td className="font-mono text-xs font-bold text-brand-700 hover:underline">
-                        <Link href={`/admin/orders/${o.id}`}>{o.orderNumber}</Link>
-                      </td>
+                    <td className="font-mono text-xs font-bold text-brand-700 hover:underline">
+                      <Link href={`/admin/orders/${o.id}`}>{o.orderNumber}</Link>
+                    </td>
                     <td className="font-medium text-gray-900">{o.customer}</td>
                     <td className="text-sm text-gray-500">{o.phone}</td>
                     <td>{o.items}</td>
@@ -191,6 +191,18 @@ export default function AdminOrdersPage() {
                       </span>
                     </td>
                     <td className="text-xs text-gray-400">{o.date}</td>
+                    <td>
+                      <Link
+                        href={`/invoice?query=${encodeURIComponent(o.orderNumber)}`}
+                        target="_blank"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition-colors shadow-xs"
+                        title="View & Download Official GST Tax Invoice PDF"
+                      >
+                        <FileText size={13} className="text-amber-700" />
+                        <span>Invoice</span>
+                        <ExternalLink size={11} className="text-amber-600" />
+                      </Link>
+                    </td>
                     <td>
                       <select
                         onChange={(e) => handleUpdateStatus(o.id, e.target.value)}
