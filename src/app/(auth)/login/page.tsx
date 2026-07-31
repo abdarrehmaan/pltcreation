@@ -153,7 +153,7 @@ export default function LoginPage() {
               ['10,000+', 'Happy Customers'],
               ['500+', 'Products'],
               ['4.8★', 'Average Rating'],
-              ['48h', 'Easy Returns'],
+              ['100%', 'Authentic Quality'],
             ].map(([v, l]) => (
               <div key={l} className="bg-white/15 rounded-2xl p-4 backdrop-blur-sm">
                 <p className="font-bold text-2xl">{v}</p>

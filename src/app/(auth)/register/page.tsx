@@ -73,17 +73,6 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <div className="p-3 bg-emerald-50 rounded-xl">
-              <p className="text-xs text-emerald-700 font-semibold mb-2">🎁 New member benefits:</p>
-              <ul className="space-y-1">
-                {['10% off your first order', 'Early access to new arrivals', 'Exclusive member-only deals', 'Easy order tracking'].map((b) => (
-                  <li key={b} className="flex items-center gap-2 text-xs text-emerald-600">
-                    <CheckCircle size={12} /> {b}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
             <button
               id="register-submit"
               type="submit"

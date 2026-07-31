@@ -83,11 +83,9 @@ export default function Footer() {
             <ul className="space-y-4">
               {[
                 { label: 'Contact Concierge', href: '/contact' },
-                { label: 'Tax Invoice Generator', href: '/invoice' },
                 { label: 'Shipping & Delivery', href: '/shipping-policy' },
                 { label: 'Return & Refund Policy', href: '/return-policy' },
                 { label: 'Size Guide', href: '/size-guide' },
-                { label: 'Track Your Order', href: '/track-order' },
                 { label: 'FAQ', href: '/faq' },
               ].map(({ label, href }) => (
                 <li key={label}>

@@ -24,8 +24,6 @@ export async function GET(
           OR: [
             { id: cleanedId },
             { orderNumber: { equals: cleanedId, mode: 'insensitive' } },
-            { orderNumber: { contains: cleanedId, mode: 'insensitive' } },
-            { shippingPhone: { contains: cleanedId } },
           ],
         },
         include: {
@@ -43,44 +41,7 @@ export async function GET(
     }
 
     if (!order) {
-      // Fallback: Generate structured order object matching query ID so invoice generation works seamlessly
-      order = {
-        id: cleanedId,
-        orderNumber: cleanedId.toUpperCase().startsWith('PLT-')
-          ? cleanedId.toUpperCase()
-          : `PLT-2026-${cleanedId.padStart(4, '0')}`,
-        createdAt: new Date().toISOString(),
-        status: 'CONFIRMED',
-        paymentMethod: 'UPI',
-        paymentStatus: 'PAID',
-        shippingName: 'Valued Customer',
-        shippingPhone: cleanedId.match(/^\+?\d+$/) ? cleanedId : '+91 98765 43210',
-        shippingLine1: 'E 98/1 GTB Nagar, Kareli',
-        shippingCity: 'Prayagraj',
-        shippingState: '09-Uttar Pradesh',
-        shippingPincode: '211016',
-        discount: 200,
-        subtotal: 8200,
-        total: 8410,
-        items: [
-          {
-            id: 'item_1',
-            productName: 'Designer Embroidered Suit Set',
-            hsnCode: '6204',
-            quantity: 2,
-            unitPrice: 2450,
-            totalPrice: 4900,
-          },
-          {
-            id: 'item_2',
-            productName: 'Georgette Anarkali Dupatta Set',
-            hsnCode: '6204',
-            quantity: 1,
-            unitPrice: 3800,
-            totalPrice: 3800,
-          },
-        ],
-      };
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
     return NextResponse.json({ order });

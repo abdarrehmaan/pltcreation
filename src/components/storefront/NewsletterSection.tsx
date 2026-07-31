@@ -46,7 +46,7 @@ export default function NewsletterSection() {
                 Unlock Exclusive <br className="hidden md:block"/> Access & Privileges.
               </h2>
               <p className="text-base md:text-lg text-gray-300 mb-10 max-w-xl mx-auto font-light leading-relaxed">
-                Join <span className="font-semibold text-white">PLT Creation Insider</span> to receive early access to limited edition collections, exclusive sales, and a 10% welcome gift.
+                Join <span className="font-semibold text-white">PLT Creation Insider</span> to receive early access to limited edition collections and exclusive member privileges.
               </p>
 
               {submitted ? (
