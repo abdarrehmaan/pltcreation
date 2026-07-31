@@ -24,6 +24,8 @@ export interface InvoiceData {
   customerGstin: string;
   items: InvoiceItem[];
   discount: number;
+  shippingCharge?: number;
+  grandTotal?: number;
   cgstRate: number; // default 2.5
   sgstRate: number; // default 2.5
   customNotes?: string;
@@ -52,6 +54,7 @@ export const defaultInvoiceData: InvoiceData = {
     { itemName: 'Silk Kurti with Plazo', hsnSac: '6204', quantity: 1, rate: 1950 },
   ],
   discount: 200,
+  shippingCharge: 0,
   cgstRate: 2.5,
   sgstRate: 2.5,
 };
@@ -79,16 +82,19 @@ export default function TaxInvoice({
   const subtotal = calculatedItems.reduce((sum, item) => sum + item.calculatedAmount, 0);
   const discount = data.discount || 0;
   const amountAfterDiscount = Math.max(0, subtotal - discount);
+  const shippingCharge = data.shippingCharge || 0;
 
   const cgstRate = typeof data.cgstRate === 'number' ? data.cgstRate : 2.5;
   const sgstRate = typeof data.sgstRate === 'number' ? data.sgstRate : 2.5;
 
-  // Direct percentage calculation on Amount After Discount
-  const cgstAmount = (amountAfterDiscount * cgstRate) / 100;
-  const sgstAmount = (amountAfterDiscount * sgstRate) / 100;
+  // For 5% inclusive GST (or cgstRate + sgstRate %), Taxable Base = Amount After Discount / (1 + totalTaxRate/100)
+  const totalTaxPercent = cgstRate + sgstRate;
+  const taxableAmount = totalTaxPercent > 0 ? amountAfterDiscount / (1 + totalTaxPercent / 100) : amountAfterDiscount;
+  const cgstAmount = (taxableAmount * cgstRate) / 100;
+  const sgstAmount = (taxableAmount * sgstRate) / 100;
 
-  // Grand Total equals Amount After Discount (GST Inclusive)
-  const grandTotal = amountAfterDiscount;
+  // Actual Payment Paid by Customer = Grand Total
+  const grandTotal = typeof data.grandTotal === 'number' ? data.grandTotal : (amountAfterDiscount + shippingCharge);
   const grandTotalRounded = Math.round(grandTotal);
 
   const amountInWords = numberToWordsIN(grandTotalRounded);
@@ -335,7 +341,7 @@ export default function TaxInvoice({
       </div>
 
       {/* 3. MAIN ITEMS TABLE */}
-      <div className="w-full my-2 border-2 border-black overflow-hidden">
+      <div className="w-full my-2 border-2 border-black overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead>
             <tr className="border-b-2 border-black bg-white text-center font-bold">
@@ -464,11 +470,11 @@ export default function TaxInvoice({
             </div>
 
             <div className="flex items-center justify-between p-1.5">
-              <span className="font-semibold">Amount After Discount</span>
+              <span className="font-semibold">Taxable Value (Excl. GST)</span>
               <div className="flex items-center">
                 <span className="mr-1">₹</span>
                 <span className="font-mono font-semibold border-b border-gray-400 min-w-[80px] text-right">
-                  {amountAfterDiscount.toFixed(2)}
+                  {taxableAmount.toFixed(2)}
                 </span>
               </div>
             </div>
@@ -495,6 +501,18 @@ export default function TaxInvoice({
                 </span>
               </div>
             </div>
+
+            {shippingCharge > 0 && (
+              <div className="flex items-center justify-between p-1.5">
+                <span className="font-semibold">Delivery Charges</span>
+                <div className="flex items-center">
+                  <span className="mr-1">₹</span>
+                  <span className="font-mono font-semibold border-b border-gray-400 min-w-[80px] text-right">
+                    {shippingCharge.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
 
             <div className="flex items-center justify-between p-2 bg-white text-black font-black text-sm border-t-2 border-black">
               <span className="tracking-wider uppercase">GRAND TOTAL</span>

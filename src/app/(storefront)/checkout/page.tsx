@@ -83,18 +83,16 @@ export default function CheckoutPage() {
   const taxPercent = Number(siteSettings.taxPercent || 0);
 
   const shipping = subtotal >= freeThreshold ? 0 : standardShipping;
-  const totalBeforeDiscount = subtotal + shipping;
 
   const prepaidDiscount = paymentMethod !== 'cod' && prepaidPercent > 0
-    ? Math.round(totalBeforeDiscount * (prepaidPercent / 100))
+    ? Math.round(subtotal * (prepaidPercent / 100))
     : 0;
 
-  const finalTotal = Math.max(0, totalBeforeDiscount - prepaidDiscount);
+  const finalTotal = Math.max(0, subtotal - prepaidDiscount + shipping);
 
-  // GST Calculation (Tax Included in Product Price or Added)
-  const gstAmount = taxPercent > 0
-    ? Math.round((subtotal - prepaidDiscount) * (taxPercent / (100 + taxPercent)))
-    : 0;
+  // GST Amount (5% Inclusive in Product Price, or siteSettings.taxPercent if set)
+  const activeTaxPercent = taxPercent > 0 ? taxPercent : 5;
+  const gstAmount = Math.round((subtotal - prepaidDiscount) * (activeTaxPercent / (100 + activeTaxPercent)));
 
   const codAdvanceAmount = Math.round(finalTotal * (codAdvancePercent / 100));
   const codRemainingAmount = finalTotal - codAdvanceAmount;
@@ -316,16 +314,14 @@ export default function CheckoutPage() {
                 {/* Totals */}
                 <div className="space-y-2.5 text-sm">
                   <div className="flex justify-between text-gray-650 font-medium">
-                    <span>Product Price ({taxPercent > 0 ? `GST ${taxPercent}% Included` : 'Tax Included'})</span>
+                    <span>Product Subtotal</span>
                     <span>{formatPrice(subtotal)}</span>
                   </div>
 
-                  {taxPercent > 0 && (
-                    <div className="flex justify-between text-gray-400 text-xs pl-3">
-                      <span>GST Amount ({taxPercent}% Included)</span>
-                      <span>{formatPrice(gstAmount)}</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between text-gray-400 text-xs pl-3">
+                    <span>Includes 5% GST</span>
+                    <span>{formatPrice(gstAmount)}</span>
+                  </div>
 
                   {prepaidDiscount > 0 && (
                     <div className="flex justify-between text-emerald-600 text-xs pl-3">

@@ -106,21 +106,23 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
             </div>
             <div className="mt-6 pt-4 border-t space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Product Price (GST Included)</span>
-                <span className="font-medium text-gray-900">{formatPrice(order.subtotal - order.discount - order.prepaidDiscount)}</span>
+                <span className="text-gray-600">Subtotal</span>
+                <span className="font-medium text-gray-900">{formatPrice(order.subtotal)}</span>
               </div>
-              <div className="flex justify-between text-xs text-gray-400 pl-3">
-                <span>GST Amount (5% Included)</span>
-                <span>{formatPrice(order.tax)}</span>
-              </div>
+              {order.tax > 0 && (
+                <div className="flex justify-between text-xs text-gray-400 pl-3">
+                  <span>Includes 5% GST</span>
+                  <span>{formatPrice(order.tax)}</span>
+                </div>
+              )}
               {order.discount > 0 && (
-                <div className="flex justify-between text-xs text-emerald-600 pl-3">
+                <div className="flex justify-between text-sm text-emerald-600">
                   <span>Coupon Discount</span>
                   <span>-{formatPrice(order.discount)}</span>
                 </div>
               )}
               {order.prepaidDiscount > 0 && (
-                <div className="flex justify-between text-xs text-emerald-600 pl-3">
+                <div className="flex justify-between text-sm text-emerald-600">
                   <span>Prepaid Discount</span>
                   <span>-{formatPrice(order.prepaidDiscount)}</span>
                 </div>
@@ -130,7 +132,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
                 <span className="font-medium text-gray-900">{order.shipping === 0 ? 'FREE' : formatPrice(order.shipping)}</span>
               </div>
               <div className="flex justify-between text-base font-bold pt-2 border-t mt-2">
-                <span className="text-gray-900">Final Payable Amount</span>
+                <span className="text-gray-900">Final Payable Amount (Actual Payment)</span>
                 <span className="text-brand-700">{formatPrice(order.total)}</span>
               </div>
             </div>

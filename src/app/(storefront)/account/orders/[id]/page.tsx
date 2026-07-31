@@ -56,7 +56,9 @@ export default function OrderDetailsInvoicePage() {
               quantity: item.quantity,
               rate: Number(item.unitPrice || item.price || 0),
             })) || [],
-            discount: Number(data.order.discount || 0),
+            discount: Number(data.order.discount || 0) + Number(data.order.couponDiscount || 0) + Number(data.order.prepaidDiscount || 0),
+            shippingCharge: Number(data.order.shippingCharge || 0),
+            grandTotal: Number(data.order.total),
             cgstRate: 2.5,
             sgstRate: 2.5,
           };
@@ -133,10 +135,14 @@ export default function OrderDetailsInvoicePage() {
         {invoiceData ? (
           <TaxInvoice id="plt-tax-invoice-bill" data={invoiceData} isEditable={false} />
         ) : (
-          <div className="bg-white dark:bg-neutral-800 p-12 rounded-2xl border text-center max-w-md">
-            <FileText className="mx-auto text-gray-400 mb-3" size={48} />
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Generating Tax Invoice...</h3>
-            <p className="text-sm text-gray-500 mt-1">Fetching customer order details.</p>
+          <div className="bg-white dark:bg-neutral-800 p-12 rounded-2xl border border-gray-200 dark:border-neutral-700 shadow-md text-center max-w-md w-full my-8 space-y-3">
+            <div className="w-14 h-14 rounded-full bg-amber-50 dark:bg-neutral-900 border border-amber-200 dark:border-neutral-700 flex items-center justify-center mx-auto">
+              <Loader2 className="animate-spin text-amber-600 dark:text-amber-400" size={28} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-gray-900 dark:text-white">Generating Tax Invoice...</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fetching customer order details & calculating GST breakdown.</p>
+            </div>
           </div>
         )}
       </div>

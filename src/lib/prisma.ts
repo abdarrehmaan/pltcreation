@@ -15,7 +15,9 @@ function getPrismaInstance(): PrismaClient {
   const pool = new Pool({
     connectionString,
     ssl: isSupabase ? { rejectUnauthorized: false } : undefined,
-    max: 10,
+    max: 15,
+    connectionTimeoutMillis: 10000,
+    idleTimeoutMillis: 30000,
   });
   const adapter = new PrismaPg(pool);
 

@@ -10,7 +10,7 @@ import { formatPrice, calculateDiscount } from '@/lib/utils';
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal } = useCartStore();
   const subtotal = getSubtotal();
-  const freeShippingThreshold = 1499;
+  const freeShippingThreshold = 999;
   const remaining = freeShippingThreshold - subtotal;
 
   if (!isOpen) return null;

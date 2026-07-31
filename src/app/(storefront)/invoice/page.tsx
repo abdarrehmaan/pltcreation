@@ -10,11 +10,12 @@ function InvoiceContent() {
   const searchParams = useSearchParams();
   const queryParam = searchParams?.get('query') || searchParams?.get('q') || searchParams?.get('orderNumber') || searchParams?.get('phone');
 
-  const [invoiceData, setInvoiceData] = useState<InvoiceData>(defaultInvoiceData);
+  const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
 
   // Customer search / fetch state
   const [searchQuery, setSearchQuery] = useState('');
   const [isFetching, setIsFetching] = useState(false);
+  const [isLoadingInitial, setIsLoadingInitial] = useState(Boolean(queryParam));
   const [fetchMessage, setFetchMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // PDF Download state
@@ -32,7 +33,9 @@ function InvoiceContent() {
 
       if (!res.ok || !data.order) {
         setFetchMessage({ type: 'error', text: data.error || 'Order not found.' });
+        setInvoiceData(null);
         setIsFetching(false);
+        setIsLoadingInitial(false);
         return;
       }
 
@@ -64,8 +67,10 @@ function InvoiceContent() {
         customerPhone: ord.shippingPhone || ord.user?.phone || queryToFetch,
         customerState: ord.shippingState || ord.address?.state || '09-Uttar Pradesh',
         customerGstin: ord.customerGstin || '',
-        items: formattedItems.length > 0 ? formattedItems : defaultInvoiceData.items,
-        discount: Number(ord.discount || ord.discountAmount || ord.prepaidDiscount || 0),
+        items: formattedItems.length > 0 ? formattedItems : [],
+        discount: Number(ord.discount || 0) + Number(ord.couponDiscount || 0) + Number(ord.prepaidDiscount || 0),
+        shippingCharge: Number(ord.shippingCharge || ord.shipping || 0),
+        grandTotal: Number(ord.total || 0) > 0 ? Number(ord.total) : undefined,
         cgstRate: 2.5,
         sgstRate: 2.5,
       };
@@ -80,6 +85,7 @@ function InvoiceContent() {
       setFetchMessage({ type: 'error', text: 'Network error fetching order details.' });
     } finally {
       setIsFetching(false);
+      setIsLoadingInitial(false);
     }
   };
 
@@ -88,6 +94,8 @@ function InvoiceContent() {
     if (queryParam) {
       setSearchQuery(queryParam);
       fetchOrderDetails(queryParam);
+    } else {
+      setIsLoadingInitial(false);
     }
   }, [queryParam]);
 
@@ -101,6 +109,7 @@ function InvoiceContent() {
   };
 
   const handleDownloadPdf = async () => {
+    if (!invoiceData) return;
     setIsDownloadingPdf(true);
     const filename = `PLT_Tax_Invoice_${invoiceData.invoiceNo}.pdf`;
     await exportInvoiceToPdf('plt-tax-invoice-bill', filename);
@@ -133,7 +142,7 @@ function InvoiceContent() {
             <div className="flex items-center gap-3">
               <button
                 onClick={handleDownloadPdf}
-                disabled={isDownloadingPdf}
+                disabled={isDownloadingPdf || !invoiceData}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 shadow-md hover:shadow-lg transition-all disabled:opacity-50"
               >
                 {isDownloadingPdf ? (
@@ -151,7 +160,8 @@ function InvoiceContent() {
 
               <button
                 onClick={handlePrint}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm bg-gray-100 dark:bg-neutral-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-neutral-600 transition-all"
+                disabled={!invoiceData}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm bg-gray-100 dark:bg-neutral-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-neutral-600 transition-all disabled:opacity-50"
               >
                 <Printer size={18} />
                 <span>Print</span>
@@ -209,13 +219,31 @@ function InvoiceContent() {
         </div>
       </div>
 
-      {/* READ-ONLY OFFICIAL TAX INVOICE PREVIEW */}
+      {/* READ-ONLY OFFICIAL TAX INVOICE PREVIEW / LOADING / EMPTY STATE */}
       <div className="w-full flex justify-center overflow-x-auto py-2">
-        <TaxInvoice
-          id="plt-tax-invoice-bill"
-          data={invoiceData}
-          isEditable={false}
-        />
+        {isFetching || isLoadingInitial ? (
+          <div className="bg-white dark:bg-neutral-800 p-12 rounded-2xl border border-gray-200 dark:border-neutral-700 shadow-md text-center max-w-md w-full my-8 space-y-4">
+            <div className="w-14 h-14 rounded-full bg-amber-50 dark:bg-neutral-900 border border-amber-200 dark:border-neutral-700 flex items-center justify-center mx-auto">
+              <Loader2 className="animate-spin text-amber-600 dark:text-amber-400" size={28} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-gray-900 dark:text-white">Generating Tax Invoice...</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fetching order details & calculating GST breakdown.</p>
+            </div>
+          </div>
+        ) : invoiceData ? (
+          <TaxInvoice
+            id="plt-tax-invoice-bill"
+            data={invoiceData}
+            isEditable={false}
+          />
+        ) : (
+          <div className="bg-white dark:bg-neutral-800 p-12 rounded-2xl border border-gray-200 dark:border-neutral-700 shadow-sm text-center max-w-md w-full my-8 space-y-3">
+            <FileText className="mx-auto text-amber-600/60 dark:text-amber-400/60" size={42} />
+            <h3 className="text-base font-bold text-gray-900 dark:text-white">No Invoice Loaded Yet</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Enter an Order Number or Phone Number above to generate and view the GST Tax Invoice.</p>
+          </div>
+        )}
       </div>
     </div>
   );

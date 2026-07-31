@@ -24,6 +24,16 @@ export async function exportInvoiceToPdf(
       backgroundColor: '#ffffff',
       allowTaint: true,
       onclone: (clonedDoc) => {
+        // Sanitize oklab/oklch color functions in style tags so html2canvas color parser doesn't warn
+        const styleTags = clonedDoc.querySelectorAll('style');
+        styleTags.forEach((styleTag) => {
+          if (styleTag.textContent) {
+            styleTag.textContent = styleTag.textContent
+              .replace(/oklab\([^)]+\)/g, '#000000')
+              .replace(/oklch\([^)]+\)/g, '#000000');
+          }
+        });
+
         const target = clonedDoc.getElementById(elementId);
         if (target) {
           // Force pure paper white background and black text on cloned DOM for canvas capture

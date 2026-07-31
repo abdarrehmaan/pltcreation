@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     // Create the order using a transaction
     const order = await prisma.$transaction(async (tx: any) => {
       // Calculate 5% inclusive GST (taxable amount is total minus shipping charge)
-      const taxAmount = (Number(total) - Number(shippingCharge)) * 0.05 / 1.05;
+      const taxAmount = Math.round(((Number(total) - Number(shippingCharge)) * 0.05 / 1.05) * 100) / 100;
 
       // 1. Create the main Order
       const newOrder = await tx.order.create({
@@ -125,6 +125,9 @@ export async function POST(request: Request) {
       }
 
       return newOrder;
+    }, {
+      maxWait: 15000,
+      timeout: 30000,
     });
 
     return NextResponse.json({ success: true, order }, { status: 201 });
