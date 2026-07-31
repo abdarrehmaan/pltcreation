@@ -29,6 +29,10 @@ export interface InvoiceData {
   cgstRate: number; // default 2.5
   sgstRate: number; // default 2.5
   customNotes?: string;
+  paymentMethod?: string;
+  codAdvanceAmount?: number;
+  paymentStatus?: string;
+  razorpayPaymentId?: string;
 }
 
 interface TaxInvoiceProps {
@@ -96,6 +100,13 @@ export default function TaxInvoice({
   // Actual Payment Paid by Customer = Grand Total
   const grandTotal = typeof data.grandTotal === 'number' ? data.grandTotal : (amountAfterDiscount + shippingCharge);
   const grandTotalRounded = Math.round(grandTotal);
+
+  const codAdvance = Number(data.codAdvanceAmount || 0);
+  const isCod = data.paymentMethod === 'COD' || codAdvance > 0;
+  const balanceDue = isCod ? Math.max(0, grandTotalRounded - codAdvance) : 0;
+  const advancePercent = (isCod && grandTotalRounded > 0 && codAdvance > 0)
+    ? Math.round((codAdvance / grandTotalRounded) * 100)
+    : 0;
 
   const amountInWords = numberToWordsIN(grandTotalRounded);
 
@@ -423,7 +434,7 @@ export default function TaxInvoice({
 
       {/* 4. LOWER CALCULATIONS & AMOUNT IN WORDS SECTION */}
       <div className="grid grid-cols-12 gap-3 my-2 items-start">
-        {/* LEFT COLUMN: AMOUNT IN WORDS */}
+        {/* LEFT COLUMN: AMOUNT IN WORDS & COD PAYMENT NOTICE */}
         <div className="col-span-7 flex flex-col justify-between h-full pt-1">
           <div className="border border-black p-2 rounded bg-white min-h-[3rem] flex items-center">
             <div className="flex items-start gap-1.5 text-xs w-full">
@@ -434,6 +445,38 @@ export default function TaxInvoice({
               </span>
             </div>
           </div>
+
+          {codAdvance > 0 ? (
+            <div className="border-2 border-black p-2 rounded bg-white text-[11px] space-y-1 my-1">
+              <div className="font-extrabold uppercase tracking-wider text-black flex items-center justify-between border-b border-black pb-1">
+                <span>COD Payment Details</span>
+                <span className="bg-black text-white px-1.5 py-0.5 rounded text-[9px] font-bold">
+                  {advancePercent > 0 ? `${advancePercent}% ADVANCE PAID` : 'ADVANCE PAID'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between font-semibold">
+                <span>Online Advance Paid:</span>
+                <span className="font-mono font-bold">₹{codAdvance.toFixed(2)}</span>
+              </div>
+              {data.razorpayPaymentId && (
+                <div className="flex items-center justify-between text-[10px] text-gray-700">
+                  <span>Razorpay Payment Ref:</span>
+                  <span className="font-mono font-semibold">{data.razorpayPaymentId}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between font-black text-xs pt-1 border-t border-black text-black">
+                <span>Balance to Collect on Delivery:</span>
+                <span className="font-mono text-sm font-bold">₹{balanceDue.toFixed(2)}</span>
+              </div>
+            </div>
+          ) : (
+            isCod && (
+              <div className="border-2 border-black p-2 rounded bg-white text-[11px] my-1">
+                <span className="font-bold uppercase tracking-wider">Payment Mode: </span>
+                <span className="font-semibold">Cash On Delivery (COD) - Collect ₹{grandTotalRounded.toFixed(2)} on Delivery</span>
+              </div>
+            )
+          )}
         </div>
 
         {/* RIGHT COLUMN: SUBTOTAL & TAX SUMMARY BOX */}
@@ -523,6 +566,27 @@ export default function TaxInvoice({
                 </span>
               </div>
             </div>
+
+            {codAdvance > 0 && (
+              <>
+                <div className="flex items-center justify-between p-1.5 font-semibold text-xs border-t border-black">
+                  <span>Less: {advancePercent > 0 ? `${advancePercent}% ` : ''}Advance Paid</span>
+                  <div className="flex items-center font-mono">
+                    <span className="mr-1">- ₹</span>
+                    <span>{codAdvance.toFixed(2)}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-white text-black font-black text-xs border-t-2 border-black">
+                  <span className="tracking-wider uppercase">BALANCE ON DELIVERY</span>
+                  <div className="flex items-center">
+                    <span className="mr-1">₹</span>
+                    <span className="font-mono text-sm font-bold border-b-2 border-black">
+                      {balanceDue.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

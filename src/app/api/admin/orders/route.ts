@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { OrderStatus, PaymentStatus } from '@prisma/client';
+import { sanitizeImageUrl } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,7 +12,15 @@ export async function GET() {
         createdAt: 'desc',
       },
       include: {
-        items: true,
+        items: {
+          include: {
+            product: {
+              include: {
+                images: true,
+              },
+            },
+          },
+        },
         user: {
           select: {
             name: true,
@@ -26,7 +35,15 @@ export async function GET() {
       orderNumber: o.orderNumber,
       customer: o.shippingName || o.user?.name || 'Guest',
       phone: o.shippingPhone || '',
-      items: o.items.reduce((sum: number, item: any) => sum + item.quantity, 0),
+      itemsCount: o.items.reduce((sum: number, item: any) => sum + item.quantity, 0),
+      itemsList: o.items.map((item: any) => ({
+        id: item.id,
+        name: item.productName,
+        quantity: item.quantity,
+        size: item.size,
+        color: item.color,
+        imageUrl: sanitizeImageUrl(item.imageUrl || item.product?.images?.[0]?.url || item.product?.image),
+      })),
       amount: Number(o.total),
       payment: o.paymentMethod,
       status: o.status,

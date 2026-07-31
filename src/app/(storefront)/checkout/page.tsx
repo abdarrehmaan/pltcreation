@@ -101,6 +101,20 @@ export default function CheckoutPage() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (typeof window !== 'undefined' && (window as any).Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -109,47 +123,212 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (!form.fullName || !form.phone || !form.email || !form.line1 || !form.city || !form.state || !form.pincode) {
+      toast.error('Please fill in all required address fields.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await fetch('/api/checkout', {
+      // Check if advance payment is required for COD or full payment for prepaid
+      const isCodWithAdvance = paymentMethod === 'cod' && codAdvanceAmount > 0;
+      const requiresOnlinePayment = paymentMethod !== 'cod' || isCodWithAdvance;
+
+      if (!requiresOnlinePayment) {
+        // Direct COD placement without advance payment
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            fullName: form.fullName,
+            phone: form.phone,
+            email: form.email,
+            line1: form.line1,
+            line2: form.line2,
+            city: form.city,
+            state: form.state,
+            pincode: form.pincode,
+            paymentMethod,
+            items,
+            subtotal,
+            shippingCharge: shipping,
+            discount: 0,
+            total: finalTotal,
+            couponCode: null,
+            couponDiscount: 0,
+            prepaidDiscount,
+            codAdvanceAmount: 0,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          toast.success('Order placed successfully! Thank you for shopping with us.');
+          useCartStore.getState().clearCart();
+          const orderNumber = data.order?.orderNumber;
+          if (orderNumber) {
+            router.push(`/invoice?query=${encodeURIComponent(orderNumber)}`);
+          } else {
+            router.push('/account/orders');
+          }
+        } else {
+          toast.error(data.error || 'Failed to place order. Please try again.');
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Online payment (UPI / Card / NetBanking for 100%, OR COD 30% advance) using Razorpay
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        toast.error('Razorpay SDK failed to load. Please check your internet connection.');
+        setLoading(false);
+        return;
+      }
+
+      const chargeAmount = isCodWithAdvance ? codAdvanceAmount : finalTotal;
+      const amountInPaise = Math.round(chargeAmount * 100);
+      if (amountInPaise < 100) {
+        toast.error('Payment amount must be at least ₹1 (100 paise).');
+        setLoading(false);
+        return;
+      }
+
+      // STEP 1: Call backend create-order API
+      const orderRes = await fetch('/api/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user.id,
-          fullName: form.fullName,
-          phone: form.phone,
-          email: form.email,
-          line1: form.line1,
-          line2: form.line2,
-          city: form.city,
-          state: form.state,
-          pincode: form.pincode,
-          paymentMethod,
-          items,
-          subtotal,
-          shippingCharge: shipping,
-          discount: 0,
-          total: finalTotal,
-          couponCode: null,
-          couponDiscount: 0,
-          prepaidDiscount,
-          codAdvanceAmount,
+          amount: amountInPaise,
+          currency: 'INR',
+          receipt: `rcpt_${Date.now()}`,
         }),
       });
 
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        toast.success('Order placed successfully! Thank you for shopping with us.');
-        useCartStore.getState().clearCart();
-        router.push('/account/orders');
-      } else {
-        toast.error(data.error || 'Failed to place order. Please try again.');
+      const orderData = await orderRes.json();
+      if (!orderRes.ok || !orderData.order_id) {
+        toast.error(orderData.error || 'Failed to initialize payment with Razorpay.');
+        setLoading(false);
+        return;
       }
+
+      // STEP 2: Open Razorpay Payment Modal
+      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_TK6fduM3YcPbY9';
+      const paymentDescription = isCodWithAdvance
+        ? `COD ${codAdvancePercent}% Advance Payment`
+        : 'Payment for Order';
+
+      const options = {
+        key: razorpayKey,
+        amount: orderData.amount,
+        currency: orderData.currency || 'INR',
+        name: 'PLT Creation',
+        description: paymentDescription,
+        order_id: orderData.order_id,
+        prefill: {
+          name: form.fullName,
+          email: form.email,
+          contact: form.phone,
+        },
+        theme: {
+          color: '#6B2D4F',
+        },
+        handler: async function (response: {
+          razorpay_payment_id: string;
+          razorpay_order_id: string;
+          razorpay_signature: string;
+        }) {
+          try {
+            // STEP 3: Verify Payment Signature with Backend
+            const verifyRes = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+
+            const verifyData = await verifyRes.json();
+
+            if (verifyRes.ok && verifyData.success) {
+              // Create DB order upon successful verification
+              const checkoutRes = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  userId: user.id,
+                  fullName: form.fullName,
+                  phone: form.phone,
+                  email: form.email,
+                  line1: form.line1,
+                  line2: form.line2,
+                  city: form.city,
+                  state: form.state,
+                  pincode: form.pincode,
+                  paymentMethod,
+                  items,
+                  subtotal,
+                  shippingCharge: shipping,
+                  discount: 0,
+                  total: finalTotal,
+                  couponCode: null,
+                  couponDiscount: 0,
+                  prepaidDiscount,
+                  codAdvanceAmount: isCodWithAdvance ? codAdvanceAmount : 0,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                }),
+              });
+
+              const checkoutData = await checkoutRes.json();
+              if (checkoutRes.ok && checkoutData.success) {
+                toast.success(
+                  isCodWithAdvance
+                    ? 'COD Advance payment verified & order placed successfully!'
+                    : 'Payment verified & order placed successfully!'
+                );
+                useCartStore.getState().clearCart();
+                const orderNumber = checkoutData.order?.orderNumber;
+                if (orderNumber) {
+                  router.push(`/invoice?query=${encodeURIComponent(orderNumber)}`);
+                } else {
+                  router.push('/account/orders');
+                }
+              } else {
+                toast.error(checkoutData.error || 'Payment succeeded but order processing failed.');
+              }
+            } else {
+              toast.error(verifyData.error || 'Payment signature verification failed.');
+            }
+          } catch (err: any) {
+            toast.error(err.message || 'An error occurred during payment verification.');
+          } finally {
+            setLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            toast.error('Payment cancelled by user.');
+            setLoading(false);
+          },
+        },
+      };
+
+      const razorpayInstance = new (window as any).Razorpay(options);
+
+      razorpayInstance.on('payment.failed', function (response: any) {
+        toast.error(response.error?.description || 'Payment failed. Please try again.');
+        setLoading(false);
+      });
+
+      razorpayInstance.open();
     } catch (err: any) {
       toast.error(err.message || 'An error occurred. Please try again.');
-    } finally {
       setLoading(false);
     }
   };

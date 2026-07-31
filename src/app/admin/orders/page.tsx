@@ -177,9 +177,36 @@ export default function AdminOrdersPage() {
                       <Link href={`/admin/orders/${o.id}`}>{o.orderNumber}</Link>
                     </td>
                     <td className="font-medium text-gray-900">{o.customer}</td>
-                    <td className="text-sm text-gray-500">{o.phone}</td>
-                    <td>{o.items}</td>
-                    <td className="font-bold">{formatPrice(o.amount)}</td>
+                    <td>
+                      <div className="flex items-center gap-2 py-1">
+                        {o.itemsList && o.itemsList.length > 0 ? (
+                          <div className="flex -space-x-2 overflow-hidden flex-shrink-0">
+                            {o.itemsList.slice(0, 3).map((item: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className="relative w-10 h-10 rounded-lg border-2 border-white overflow-hidden bg-gray-100 shadow-xs flex-shrink-0"
+                                title={`${item.name} ${item.size ? `(Size: ${item.size})` : ''} - Qty: ${item.quantity}`}
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={item.imageUrl}
+                                  alt={item.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                        <div className="text-xs text-gray-700">
+                          <span className="font-bold text-gray-900">{o.itemsCount || o.items} { (o.itemsCount || o.items) === 1 ? 'item' : 'items' }</span>
+                          {o.itemsList?.[0] && (
+                            <span className="block text-[11px] text-gray-500 font-medium max-w-[140px] truncate" title={o.itemsList[0].name}>
+                              {o.itemsList[0].name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
                     <td>
                       <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full font-medium">
                         {o.payment}

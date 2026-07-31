@@ -23,6 +23,8 @@ export async function POST(request: Request) {
       couponCode,
       couponDiscount,
       prepaidDiscount,
+      razorpayOrderId,
+      razorpayPaymentId,
     } = await request.json();
 
     if (!userId || !items || items.length === 0) {
@@ -52,6 +54,9 @@ export async function POST(request: Request) {
           orderNumber,
           userId,
           paymentMethod: mappedPaymentMethod,
+          paymentStatus: razorpayPaymentId ? 'PAID' : 'PENDING',
+          razorpayOrderId: razorpayOrderId || null,
+          razorpayPaymentId: razorpayPaymentId || null,
           subtotal,
           shippingCharge,
           discount,

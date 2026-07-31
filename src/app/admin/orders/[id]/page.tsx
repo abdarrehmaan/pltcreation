@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, sanitizeImageUrl } from '@/lib/utils';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import OrderStatusUpdater from '@/components/admin/OrderStatusUpdater';
@@ -10,13 +10,50 @@ import PrintInvoiceButton from '@/components/admin/PrintInvoiceButton';
 export default async function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  const orderDb = await prisma.order.findUnique({
-    where: { id },
-    include: {
-      user: true,
-      items: true,
-    },
-  });
+  let orderDb = null;
+
+  try {
+    orderDb = await prisma.order.findUnique({
+      where: { id },
+      include: {
+        user: true,
+        items: {
+          include: {
+            product: {
+              include: {
+                images: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  } catch (e) {
+    // ignore
+  }
+
+  if (!orderDb) {
+    orderDb = await prisma.order.findFirst({
+      where: {
+        OR: [
+          { orderNumber: id },
+          { id: id },
+        ],
+      },
+      include: {
+        user: true,
+        items: {
+          include: {
+            product: {
+              include: {
+                images: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 
   if (!orderDb) {
     return notFound();
@@ -41,7 +78,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
       state: orderDb.shippingState || '',
       pincode: orderDb.shippingPincode || '',
     },
-    items: orderDb.items.map((item) => ({
+    items: orderDb.items.map((item: any) => ({
       id: item.id,
       name: item.productName,
       sku: item.productSku,
@@ -49,6 +86,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
       quantity: item.quantity,
       size: item.size || '—',
       color: item.color || '—',
+      image: sanitizeImageUrl(item.imageUrl || item.product?.images?.[0]?.url || item.product?.image),
     })),
     subtotal: Number(orderDb.subtotal),
     shipping: Number(orderDb.shippingCharge),
@@ -92,14 +130,28 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
             <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Order Items</h3>
             <div className="space-y-4">
               {order.items.map((item) => (
-                <div key={item.id} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
-                  <div>
-                    <p className="font-semibold text-gray-900">{item.name}</p>
-                    <p className="text-xs text-gray-500">SKU: {item.sku} • Size: {item.size} • Color: {item.color}</p>
+                <div key={item.id} className="flex items-center gap-4 py-3 border-b border-gray-100 last:border-0">
+                  <div className="relative w-16 h-16 rounded-xl border border-gray-200 overflow-hidden bg-gray-100 flex-shrink-0 shadow-xs">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                      onError={(e: any) => {
+                        e.target.onerror = null;
+                        e.target.src = '/banner-kurti.jpg';
+                      }}
+                    />
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">{formatPrice(item.price)}</p>
-                    <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 text-sm">{item.name}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      SKU: <span className="font-mono">{item.sku}</span> • Size: <span className="font-semibold text-gray-700">{item.size}</span> • Color: <span className="font-semibold text-gray-700">{item.color}</span>
+                    </p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-bold text-gray-900 text-sm">{formatPrice(item.price)}</p>
+                    <p className="text-xs text-gray-500 font-medium">Qty: {item.quantity}</p>
                   </div>
                 </div>
               ))}

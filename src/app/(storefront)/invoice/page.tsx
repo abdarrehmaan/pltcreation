@@ -73,6 +73,10 @@ function InvoiceContent() {
         grandTotal: Number(ord.total || 0) > 0 ? Number(ord.total) : undefined,
         cgstRate: 2.5,
         sgstRate: 2.5,
+        paymentMethod: ord.paymentMethod,
+        codAdvanceAmount: Number(ord.codAdvanceAmount || 0),
+        paymentStatus: ord.paymentStatus,
+        razorpayPaymentId: ord.razorpayPaymentId || undefined,
       };
 
       setInvoiceData(newInvoice);
