@@ -20,10 +20,15 @@ const defaultImages: Record<string, string> = {
 export const dynamic = 'force-dynamic';
 
 export default async function CategoriesPage() {
-  const dbCategories = await prisma.category.findMany({
-    where: { isActive: true },
-    orderBy: { sortOrder: 'asc' },
-  });
+  let dbCategories: any[] = [];
+  try {
+    dbCategories = await prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' },
+    });
+  } catch (error) {
+    console.warn('CategoriesPage DB query warning:', error);
+  }
 
   return (
     <div className="bg-white min-h-screen">

@@ -2,20 +2,28 @@ import type { Metadata } from 'next';
 import CollectionsBanner from '@/components/storefront/CollectionsBanner';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Collections',
   description: 'Explore PLT Creation\'s curated seasonal collections — Eid, Wedding Season, Monsoon and more.',
 };
 
 export default async function CollectionsPage() {
-  const collectionsDb = await prisma.collection.findMany({
-    where: {
-      isActive: true,
-    },
-    orderBy: {
-      sortOrder: 'asc',
-    },
-  });
+  let collectionsDb: any[] = [];
+
+  try {
+    collectionsDb = await prisma.collection.findMany({
+      where: {
+        isActive: true,
+      },
+      orderBy: {
+        sortOrder: 'asc',
+      },
+    });
+  } catch (error) {
+    console.warn('CollectionsPage DB query warning:', error);
+  }
 
   const collections = collectionsDb.map((c) => ({
     id: c.id,

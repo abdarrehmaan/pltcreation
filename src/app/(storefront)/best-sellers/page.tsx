@@ -10,17 +10,22 @@ export const metadata: Metadata = {
 };
 
 export default async function BestSellersPage() {
-  const dbProducts = await prisma.product.findMany({
-    where: {
-      isBestSeller: true,
-      isActive: true,
-    },
-    include: {
-      category: { select: { name: true } },
-      images: { orderBy: { sortOrder: 'asc' } },
-      variants: true,
-    },
-  });
+  let dbProducts: any[] = [];
+  try {
+    dbProducts = await prisma.product.findMany({
+      where: {
+        isBestSeller: true,
+        isActive: true,
+      },
+      include: {
+        category: { select: { name: true } },
+        images: { orderBy: { sortOrder: 'asc' } },
+        variants: true,
+      },
+    });
+  } catch (error) {
+    console.warn('BestSellersPage DB query warning:', error);
+  }
 
   const products = dbProducts.map((p) => ({
     id: p.id,
@@ -32,8 +37,8 @@ export default async function BestSellersPage() {
     isNewArrival: p.isNewArrival,
     isBestSeller: p.isBestSeller,
     category: { name: p.category.name },
-    images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
-    variants: p.variants.map((v) => ({
+    images: (p.images || []).map((img: any) => ({ url: img.url, alt: img.alt || '' })),
+    variants: (p.variants || []).map((v: any) => ({
       id: v.id,
       size: v.size,
       color: v.color,
