@@ -25,6 +25,7 @@ export async function POST(request: Request) {
       prepaidDiscount,
       razorpayOrderId,
       razorpayPaymentId,
+      codAdvanceAmount,
     } = await request.json();
 
     if (!userId || !items || items.length === 0) {
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
     if (paymentMethod === 'upi') mappedPaymentMethod = PaymentMethod.UPI;
     else if (paymentMethod === 'card') mappedPaymentMethod = PaymentMethod.CREDIT_CARD;
     else if (paymentMethod === 'netbanking') mappedPaymentMethod = PaymentMethod.NET_BANKING;
+    else if (paymentMethod === 'COD' || paymentMethod === 'cod') mappedPaymentMethod = PaymentMethod.COD;
 
     // Generate unique order number
     const orderNumber = `ORD-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -57,6 +59,7 @@ export async function POST(request: Request) {
           paymentStatus: razorpayPaymentId ? 'PAID' : 'PENDING',
           razorpayOrderId: razorpayOrderId || null,
           razorpayPaymentId: razorpayPaymentId || null,
+          codAdvanceAmount: codAdvanceAmount ? Number(codAdvanceAmount) : null,
           subtotal,
           shippingCharge,
           discount,

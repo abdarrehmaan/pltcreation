@@ -40,6 +40,7 @@ export default function AdminOrdersPage() {
     totalAmount: '',
     paymentMethod: 'UPI',
     razorpayPaymentId: '',
+    codAdvanceAmount: '',
   });
 
   const fetchOrders = async () => {
@@ -150,6 +151,7 @@ export default function AdminOrdersPage() {
           totalAmount: '',
           paymentMethod: 'UPI',
           razorpayPaymentId: '',
+          codAdvanceAmount: '',
         });
         await fetchOrders();
       } else {
@@ -492,6 +494,22 @@ export default function AdminOrdersPage() {
                   />
                 </div>
               </div>
+
+              {formData.paymentMethod === 'COD' && (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">COD Advance Paid Online (₹)</label>
+                  <input
+                    type="number"
+                    value={formData.codAdvanceAmount}
+                    onChange={(e) => setFormData({ ...formData, codAdvanceAmount: e.target.value })}
+                    placeholder="e.g. 25 (if partial advance was paid online)"
+                    className="w-full px-3 py-2 text-sm border border-amber-300 bg-amber-50/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Balance to collect on delivery will automatically calculate as Total Bill (₹{formData.totalAmount || 0}) minus Advance (₹{formData.codAdvanceAmount || 0}) = ₹{Math.max(0, Number(formData.totalAmount || 0) - Number(formData.codAdvanceAmount || 0))}.
+                  </p>
+                </div>
+              )}
 
               <div className="pt-3 flex justify-end gap-3 border-t border-gray-100">
                 <button

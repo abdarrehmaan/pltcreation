@@ -46,6 +46,7 @@ export async function GET() {
       })),
       amount: Number(o.total),
       payment: o.paymentMethod,
+      codAdvanceAmount: Number(o.codAdvanceAmount || 0),
       status: o.status,
       date: new Date(o.createdAt).toLocaleDateString('en-IN', {
         day: '2-digit',
@@ -118,6 +119,7 @@ export async function POST(request: Request) {
       paymentMethod = 'UPI',
       razorpayOrderId,
       razorpayPaymentId,
+      codAdvanceAmount,
       productName = 'Women Apparel',
       quantity = 1,
     } = body;
@@ -153,7 +155,7 @@ export async function POST(request: Request) {
     const taxAmount = Math.round(((total - 0) * 0.05 / 1.05) * 100) / 100;
 
     let mappedPaymentMethod: PaymentMethod = PaymentMethod.UPI;
-    if (paymentMethod === 'COD') mappedPaymentMethod = PaymentMethod.COD;
+    if (paymentMethod === 'COD' || paymentMethod === 'cod') mappedPaymentMethod = PaymentMethod.COD;
     else if (paymentMethod === 'CREDIT_CARD' || paymentMethod === 'card') mappedPaymentMethod = PaymentMethod.CREDIT_CARD;
     else if (paymentMethod === 'NET_BANKING' || paymentMethod === 'netbanking') mappedPaymentMethod = PaymentMethod.NET_BANKING;
 
@@ -166,6 +168,7 @@ export async function POST(request: Request) {
         status: OrderStatus.CONFIRMED,
         razorpayOrderId: razorpayOrderId || null,
         razorpayPaymentId: razorpayPaymentId || null,
+        codAdvanceAmount: codAdvanceAmount ? Number(codAdvanceAmount) : null,
         subtotal: total,
         shippingCharge: 0,
         discount: 0,

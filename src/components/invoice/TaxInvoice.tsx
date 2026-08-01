@@ -473,7 +473,7 @@ export default function TaxInvoice({
             isCod && (
               <div className="border-2 border-black p-2 rounded bg-white text-[11px] my-1">
                 <span className="font-bold uppercase tracking-wider">Payment Mode: </span>
-                <span className="font-semibold">Cash On Delivery (COD) - Collect ₹{grandTotalRounded.toFixed(2)} on Delivery</span>
+                <span className="font-semibold">Cash On Delivery (COD) - Collect ₹{balanceDue.toFixed(2)} on Delivery</span>
               </div>
             )
           )}
