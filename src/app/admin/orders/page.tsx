@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Loader2, FileText, ExternalLink, Plus, X } from 'lucide-react';
+import { Search, Loader2, FileText, ExternalLink, Plus, X, UserCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const statusClass: Record<string, string> = {
@@ -20,6 +20,10 @@ export default function AdminOrdersPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
+
+  // Customer List state for auto-populating modal
+  const [customersList, setCustomersList] = useState<any[]>([]);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
 
   // Manual Order Creation Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,8 +58,24 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const fetchCustomers = async () => {
+    setLoadingCustomers(true);
+    try {
+      const res = await fetch('/api/admin/customers');
+      const data = await res.json();
+      if (res.ok) {
+        setCustomersList(data.customers || []);
+      }
+    } catch (err) {
+      console.error('Failed to load customers list:', err);
+    } finally {
+      setLoadingCustomers(false);
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
+    fetchCustomers();
   }, []);
 
   const handleUpdateStatus = async (id: string, status: string) => {
@@ -79,6 +99,24 @@ export default function AdminOrdersPage() {
       success: 'Order status updated successfully!',
       error: (err) => err.message || 'Could not update status',
     });
+  };
+
+  const handleSelectCustomer = (customerId: string) => {
+    if (!customerId) return;
+    const cust = customersList.find((c) => c.id === customerId);
+    if (cust) {
+      setFormData((prev) => ({
+        ...prev,
+        customerName: cust.name !== 'Anonymous' ? cust.name : prev.customerName,
+        customerPhone: cust.phone || prev.customerPhone,
+        customerEmail: cust.email || prev.customerEmail,
+        shippingLine1: cust.address?.line1 || prev.shippingLine1,
+        shippingCity: cust.address?.city || prev.shippingCity,
+        shippingState: cust.address?.state || prev.shippingState,
+        shippingPincode: cust.address?.pincode || prev.shippingPincode,
+      }));
+      toast.success(`Loaded details for ${cust.name || cust.email}`);
+    }
   };
 
   const handleCreateManualOrder = async (e: React.FormEvent) => {
@@ -209,7 +247,10 @@ export default function AdminOrdersPage() {
 
         {/* ADD MANUAL ORDER BUTTON */}
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setIsModalOpen(true);
+            fetchCustomers();
+          }}
           className="flex items-center gap-2 px-4 py-2 bg-brand-700 hover:bg-brand-800 text-white rounded-xl font-semibold text-sm transition-all shadow-sm"
         >
           <Plus size={16} />
@@ -325,7 +366,7 @@ export default function AdminOrdersPage() {
       {/* CREATE MANUAL / PAST ORDER MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-4">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
@@ -333,10 +374,34 @@ export default function AdminOrdersPage() {
               <X size={20} />
             </button>
 
-            <h2 className="text-xl font-bold text-gray-900 mb-1">Add Past / Missing Order</h2>
-            <p className="text-xs text-gray-500 mb-5">
-              Enter the Razorpay payment details to add the order to the Admin Panel and generate a Tax Invoice.
-            </p>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 mb-1">Add Past / Missing Order</h2>
+              <p className="text-xs text-gray-500">
+                Select an existing customer from DB or enter payment details manually to create the order & GST Invoice.
+              </p>
+            </div>
+
+            {/* FETCH / SELECT CUSTOMER FROM DB */}
+            <div className="bg-amber-50/70 p-3.5 rounded-xl border border-amber-200 space-y-2">
+              <label className="block text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                <UserCheck size={14} className="text-amber-700" />
+                Select Existing Customer (Customer DB)
+              </label>
+              <select
+                onChange={(e) => handleSelectCustomer(e.target.value)}
+                defaultValue=""
+                className="w-full px-3 py-2 text-xs border border-amber-300 rounded-xl bg-white text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <option value="" disabled>
+                  {loadingCustomers ? 'Loading Customer Database...' : '-- Select Customer from Database to Auto-fill --'}
+                </option>
+                {customersList.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name !== 'Anonymous' ? c.name : 'Customer'} {c.phone ? `(${c.phone})` : ''} - {c.email}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <form onSubmit={handleCreateManualOrder} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
