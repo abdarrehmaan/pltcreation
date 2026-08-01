@@ -153,29 +153,57 @@ export async function DELETE(
 
     const product = await prisma.product.findUnique({
       where: { id },
-      include: { images: true },
+      include: {
+        images: true,
+        orderItems: { select: { id: true }, take: 1 },
+      },
     });
 
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    // 1. Delete image files from Supabase Storage
-    if (product.images && product.images.length > 0) {
-      const imageUrls = product.images.map((img) => img.url);
-      await deleteStorageImages(imageUrls);
-    }
+    // Check if product has past customer order items
+    const hasOrderHistory = product.orderItems && product.orderItems.length > 0;
 
-    // 2. Hard delete product & associated relations from Database
-    await prisma.$transaction(async (tx) => {
-      await tx.productImage.deleteMany({ where: { productId: id } });
-      await tx.productVariant.deleteMany({ where: { productId: id } });
-      await tx.collectionProduct.deleteMany({ where: { productId: id } });
-      await tx.wishlistItem.deleteMany({ where: { productId: id } });
-      await tx.cartItem.deleteMany({ where: { productId: id } });
-      await tx.review.deleteMany({ where: { productId: id } });
-      await tx.product.delete({ where: { id } });
-    });
+    if (hasOrderHistory) {
+      // Soft-delete product so past order receipts & customer invoices remain intact
+      await prisma.product.update({
+        where: { id },
+        data: {
+          isDeleted: true,
+          isActive: false,
+        },
+      });
+    } else {
+      // 1. Delete image files from Supabase Storage
+      if (product.images && product.images.length > 0) {
+        const imageUrls = product.images.map((img) => img.url);
+        await deleteStorageImages(imageUrls);
+      }
+
+      // 2. Hard delete product & associated relations from Database
+      try {
+        await prisma.$transaction(async (tx) => {
+          await tx.productImage.deleteMany({ where: { productId: id } });
+          await tx.productVariant.deleteMany({ where: { productId: id } });
+          await tx.collectionProduct.deleteMany({ where: { productId: id } });
+          await tx.wishlistItem.deleteMany({ where: { productId: id } });
+          await tx.cartItem.deleteMany({ where: { productId: id } });
+          await tx.review.deleteMany({ where: { productId: id } });
+          await tx.product.delete({ where: { id } });
+        });
+      } catch (hardDeleteErr) {
+        console.warn('Hard delete failed, falling back to soft delete:', hardDeleteErr);
+        await prisma.product.update({
+          where: { id },
+          data: {
+            isDeleted: true,
+            isActive: false,
+          },
+        });
+      }
+    }
 
     revalidatePath('/products');
     revalidatePath(`/products/${product.slug}`);
@@ -184,7 +212,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('Failed to hard delete product:', error);
+    console.error('Failed to delete product:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
