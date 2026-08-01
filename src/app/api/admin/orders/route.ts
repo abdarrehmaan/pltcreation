@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { OrderStatus, PaymentStatus } from '@prisma/client';
+import { OrderStatus, PaymentStatus, PaymentMethod } from '@prisma/client';
 import { sanitizeImageUrl } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
@@ -100,5 +100,104 @@ export async function PATCH(request: Request) {
   } catch (error: any) {
     console.error('Failed to update order status:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const {
+      customerName,
+      customerPhone,
+      customerEmail,
+      shippingLine1,
+      shippingCity,
+      shippingState,
+      shippingPincode,
+      totalAmount,
+      paymentMethod = 'UPI',
+      razorpayOrderId,
+      razorpayPaymentId,
+      productName = 'Women Apparel',
+      quantity = 1,
+    } = body;
+
+    if (!customerName || !customerPhone || !totalAmount) {
+      return NextResponse.json(
+        { error: 'Customer Name, Phone, and Total Amount are required.' },
+        { status: 400 }
+      );
+    }
+
+    const email = customerEmail || `customer_${customerPhone.replace(/\D/g, '')}@pltcreation.com`;
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { phone: customerPhone }],
+      },
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          name: customerName,
+          email,
+          phone: customerPhone,
+          role: 'CUSTOMER',
+        },
+      });
+    }
+
+    const defaultProduct = await prisma.product.findFirst();
+    const orderNumber = `ORD-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const total = Number(totalAmount);
+    const taxAmount = Math.round(((total - 0) * 0.05 / 1.05) * 100) / 100;
+
+    let mappedPaymentMethod: PaymentMethod = PaymentMethod.UPI;
+    if (paymentMethod === 'COD') mappedPaymentMethod = PaymentMethod.COD;
+    else if (paymentMethod === 'CREDIT_CARD' || paymentMethod === 'card') mappedPaymentMethod = PaymentMethod.CREDIT_CARD;
+    else if (paymentMethod === 'NET_BANKING' || paymentMethod === 'netbanking') mappedPaymentMethod = PaymentMethod.NET_BANKING;
+
+    const newOrder = await prisma.order.create({
+      data: {
+        orderNumber,
+        userId: user.id,
+        paymentMethod: mappedPaymentMethod,
+        paymentStatus: PaymentStatus.PAID,
+        status: OrderStatus.CONFIRMED,
+        razorpayOrderId: razorpayOrderId || null,
+        razorpayPaymentId: razorpayPaymentId || null,
+        subtotal: total,
+        shippingCharge: 0,
+        discount: 0,
+        tax: taxAmount,
+        total: total,
+        shippingName: customerName,
+        shippingPhone: customerPhone,
+        shippingLine1: shippingLine1 || 'Main Street',
+        shippingCity: shippingCity || 'Prayagraj',
+        shippingState: shippingState || 'Uttar Pradesh',
+        shippingPincode: shippingPincode || '211001',
+        items: {
+          create: [
+            {
+              productId: defaultProduct?.id || '',
+              productName: productName,
+              productSku: defaultProduct?.sku || 'SKU-MANUAL',
+              quantity: Number(quantity),
+              unitPrice: total / Number(quantity),
+              totalPrice: total,
+            },
+          ],
+        },
+      },
+      include: {
+        items: true,
+      },
+    });
+
+    return NextResponse.json({ success: true, order: newOrder }, { status: 201 });
+  } catch (error: any) {
+    console.error('Failed to create manual order:', error);
+    return NextResponse.json({ error: error.message || 'Failed to create order' }, { status: 500 });
   }
 }

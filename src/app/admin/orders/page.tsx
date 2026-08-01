@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Loader2, FileText, ExternalLink } from 'lucide-react';
-import { formatPrice } from '@/lib/utils';
+import { Search, Loader2, FileText, ExternalLink, Plus, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const statusClass: Record<string, string> = {
@@ -21,6 +20,23 @@ export default function AdminOrdersPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
+
+  // Manual Order Creation Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    customerName: '',
+    customerPhone: '',
+    customerEmail: '',
+    shippingLine1: 'Main Street',
+    shippingCity: 'Prayagraj',
+    shippingState: 'Uttar Pradesh',
+    shippingPincode: '211001',
+    productName: 'Women Apparel',
+    totalAmount: '',
+    paymentMethod: 'UPI',
+    razorpayPaymentId: '',
+  });
 
   const fetchOrders = async () => {
     try {
@@ -65,6 +81,49 @@ export default function AdminOrdersPage() {
     });
   };
 
+  const handleCreateManualOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.customerName || !formData.customerPhone || !formData.totalAmount) {
+      toast.error('Customer Name, Phone, and Total Amount are required.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success(`Order ${data.order.orderNumber} added successfully!`);
+        setIsModalOpen(false);
+        setFormData({
+          customerName: '',
+          customerPhone: '',
+          customerEmail: '',
+          shippingLine1: 'Main Street',
+          shippingCity: 'Prayagraj',
+          shippingState: 'Uttar Pradesh',
+          shippingPincode: '211001',
+          productName: 'Women Apparel',
+          totalAmount: '',
+          paymentMethod: 'UPI',
+          razorpayPaymentId: '',
+        });
+        await fetchOrders();
+      } else {
+        toast.error(data.error || 'Failed to create order.');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Error creating order.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Filter orders
   const filteredOrders = orders.filter((o) => {
     const matchesSearch =
@@ -79,7 +138,7 @@ export default function AdminOrdersPage() {
     return matchesSearch && matchesStatus;
   });
 
-  // Calculate quick stats
+  // Quick stats
   const totalCount = orders.length;
   const pendingCount = orders.filter((o) => o.status === 'PENDING').length;
   const processingCount = orders.filter((o) => o.status === 'PROCESSING').length;
@@ -122,7 +181,7 @@ export default function AdminOrdersPage() {
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <div className="flex gap-3 flex-1 w-full">
+        <div className="flex gap-3 flex-1 w-full max-w-xl">
           <div className="relative flex-1 max-w-xs">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
@@ -147,6 +206,15 @@ export default function AdminOrdersPage() {
             <option value="CANCELLED">Cancelled</option>
           </select>
         </div>
+
+        {/* ADD MANUAL ORDER BUTTON */}
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-brand-700 hover:bg-brand-800 text-white rounded-xl font-semibold text-sm transition-all shadow-sm"
+        >
+          <Plus size={16} />
+          <span>Add Past / Missing Order</span>
+        </button>
       </div>
 
       {/* Table */}
@@ -177,6 +245,7 @@ export default function AdminOrdersPage() {
                       <Link href={`/admin/orders/${o.id}`}>{o.orderNumber}</Link>
                     </td>
                     <td className="font-medium text-gray-900">{o.customer}</td>
+                    <td className="text-xs text-gray-600">{o.phone}</td>
                     <td>
                       <div className="flex items-center gap-2 py-1">
                         {o.itemsList && o.itemsList.length > 0 ? (
@@ -198,7 +267,7 @@ export default function AdminOrdersPage() {
                           </div>
                         ) : null}
                         <div className="text-xs text-gray-700">
-                          <span className="font-bold text-gray-900">{o.itemsCount || o.items} { (o.itemsCount || o.items) === 1 ? 'item' : 'items' }</span>
+                          <span className="font-bold text-gray-900">{o.itemsCount || o.items} {(o.itemsCount || o.items) === 1 ? 'item' : 'items'}</span>
                           {o.itemsList?.[0] && (
                             <span className="block text-[11px] text-gray-500 font-medium max-w-[140px] truncate" title={o.itemsList[0].name}>
                               {o.itemsList[0].name}
@@ -207,6 +276,7 @@ export default function AdminOrdersPage() {
                         </div>
                       </div>
                     </td>
+                    <td className="font-bold text-gray-900">₹{o.amount}</td>
                     <td>
                       <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full font-medium">
                         {o.payment}
@@ -251,6 +321,140 @@ export default function AdminOrdersPage() {
           </div>
         )}
       </div>
+
+      {/* CREATE MANUAL / PAST ORDER MODAL */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <X size={20} />
+            </button>
+
+            <h2 className="text-xl font-bold text-gray-900 mb-1">Add Past / Missing Order</h2>
+            <p className="text-xs text-gray-500 mb-5">
+              Enter the Razorpay payment details to add the order to the Admin Panel and generate a Tax Invoice.
+            </p>
+
+            <form onSubmit={handleCreateManualOrder} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Customer Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.customerName}
+                    onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                    placeholder="e.g. Priya Sharma"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Phone Number *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.customerPhone}
+                    onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
+                    placeholder="e.g. 9876543210"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Customer Email (Optional)</label>
+                <input
+                  type="email"
+                  value={formData.customerEmail}
+                  onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
+                  placeholder="e.g. customer@gmail.com"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Product Name</label>
+                  <input
+                    type="text"
+                    value={formData.productName}
+                    onChange={(e) => setFormData({ ...formData, productName: e.target.value })}
+                    placeholder="e.g. Kurti Set"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Total Paid (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    value={formData.totalAmount}
+                    onChange={(e) => setFormData({ ...formData, totalAmount: e.target.value })}
+                    placeholder="e.g. 1499"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Payment Method</label>
+                  <select
+                    value={formData.paymentMethod}
+                    onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  >
+                    <option value="UPI">UPI</option>
+                    <option value="CREDIT_CARD">Credit/Debit Card</option>
+                    <option value="NET_BANKING">Net Banking</option>
+                    <option value="COD">COD</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">Razorpay Payment ID (Optional)</label>
+                  <input
+                    type="text"
+                    value={formData.razorpayPaymentId}
+                    onChange={(e) => setFormData({ ...formData, razorpayPaymentId: e.target.value })}
+                    placeholder="pay_xxxxxxxx"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-3 flex justify-end gap-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-5 py-2 text-sm font-bold text-white bg-brand-700 hover:bg-brand-800 rounded-xl transition-all disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Saving Order...</span>
+                    </>
+                  ) : (
+                    <span>Add Order & Generate Invoice</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
