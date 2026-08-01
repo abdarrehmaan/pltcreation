@@ -134,13 +134,9 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
                   <div className="relative w-16 h-16 rounded-xl border border-gray-200 overflow-hidden bg-gray-100 flex-shrink-0 shadow-xs">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={item.image}
+                      src={item.image || '/banner-kurti.jpg'}
                       alt={item.name}
                       className="w-full h-full object-cover"
-                      onError={(e: any) => {
-                        e.target.onerror = null;
-                        e.target.src = '/banner-kurti.jpg';
-                      }}
                     />
                   </div>
                   <div className="flex-1 min-w-0">

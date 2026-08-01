@@ -6,8 +6,8 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function getPrismaInstance(): PrismaClient {
   const connectionString =
-    process.env.DATABASE_URL ||
     process.env.DIRECT_URL ||
+    process.env.DATABASE_URL ||
     'postgresql://postgres:postgres@localhost:5432/postgres';
 
   const isSupabase = connectionString.includes('supabase.com');
@@ -15,7 +15,7 @@ function getPrismaInstance(): PrismaClient {
   const pool = new Pool({
     connectionString,
     ssl: isSupabase ? { rejectUnauthorized: false } : undefined,
-    max: 15,
+    max: isSupabase ? 5 : 10,
     connectionTimeoutMillis: 10000,
     idleTimeoutMillis: 30000,
   });

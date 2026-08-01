@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Plus, Trash2, Loader2, Image as ImageIcon, X, Save } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { formatPrice } from '@/lib/utils';
 
-export default function AdminOffersPage() {
+function AdminOffersContent() {
   const [offers, setOffers] = useState<any[]>([]);
   const [coupons, setCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -553,5 +553,19 @@ export default function AdminOffersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AdminOffersPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-40">
+          <Loader2 className="animate-spin text-brand-600" size={32} />
+        </div>
+      }
+    >
+      <AdminOffersContent />
+    </Suspense>
   );
 }
