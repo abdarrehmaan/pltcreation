@@ -52,7 +52,7 @@ export default function OrderDetailsInvoicePage() {
             customerGstin: data.order.customerGstin || '',
             items: data.order.items?.map((item: any) => ({
               itemName: item.productName || item.product?.name || 'Women Apparel',
-              hsnSac: item.hsnCode || '6204',
+              hsnSac: '',
               quantity: item.quantity,
               rate: Number(item.unitPrice || item.price || 0),
             })) || [],

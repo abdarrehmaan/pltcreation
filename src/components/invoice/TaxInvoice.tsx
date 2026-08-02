@@ -53,9 +53,9 @@ export const defaultInvoiceData: InvoiceData = {
   customerState: '09-Uttar Pradesh',
   customerGstin: '09ABCDE1234F1Z5',
   items: [
-    { itemName: 'Designer Embroidered Suit Set', hsnSac: '6204', quantity: 2, rate: 2450 },
-    { itemName: 'Georgette Anarkali Dupatta Set', hsnSac: '6204', quantity: 1, rate: 3800 },
-    { itemName: 'Silk Kurti with Plazo', hsnSac: '6204', quantity: 1, rate: 1950 },
+    { itemName: 'Designer Embroidered Suit Set', hsnSac: '', quantity: 2, rate: 2450 },
+    { itemName: 'Georgette Anarkali Dupatta Set', hsnSac: '', quantity: 1, rate: 3800 },
+    { itemName: 'Silk Kurti with Plazo', hsnSac: '', quantity: 1, rate: 1950 },
   ],
   discount: 200,
   shippingCharge: 0,
@@ -392,7 +392,7 @@ export default function TaxInvoice({
                         className="w-full text-center focus:outline-none bg-transparent"
                       />
                     ) : (
-                      <span>{item.hsnSac}</span>
+                      <span></span>
                     )}
                   </td>
                   <td className="border-r-2 border-black font-semibold">

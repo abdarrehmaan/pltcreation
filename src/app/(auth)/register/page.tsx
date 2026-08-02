@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, ArrowRight, CheckCircle } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store';
+import { useCartStore } from '@/features/cart/store';
 import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
@@ -26,6 +27,7 @@ export default function RegisterPage() {
     setLoading(false);
 
     if (result.success) {
+      useCartStore.getState().clearCart();
       if (result.needsConfirmation) {
         toast.success('Account created! Please check your email inbox to confirm your account before logging in.', { duration: 6000 });
       } else {

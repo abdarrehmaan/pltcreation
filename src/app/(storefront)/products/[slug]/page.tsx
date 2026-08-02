@@ -8,9 +8,16 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   try {
     const { slug } = await params;
-    const decodedSlug = decodeURIComponent(slug);
-    const product = await prisma.product.findUnique({
-      where: { slug: decodedSlug },
+    const decodedSlug = decodeURIComponent(slug).trim();
+    const product = await prisma.product.findFirst({
+      where: {
+        OR: [
+          { slug: decodedSlug },
+          { slug: { equals: decodedSlug, mode: 'insensitive' } },
+          { id: decodedSlug },
+        ],
+        isDeleted: false,
+      },
       select: { name: true, price: true, isDeleted: true },
     });
     if (!product || product.isDeleted) return {};
@@ -25,15 +32,22 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const decodedSlug = decodeURIComponent(slug);
+  const decodedSlug = decodeURIComponent(slug).trim();
   
   let dbProduct: any = null;
   let reviews: any[] = [];
   let dbRelated: any[] = [];
 
   try {
-    dbProduct = await prisma.product.findUnique({
-      where: { slug: decodedSlug },
+    dbProduct = await prisma.product.findFirst({
+      where: {
+        OR: [
+          { slug: decodedSlug },
+          { slug: { equals: decodedSlug, mode: 'insensitive' } },
+          { id: decodedSlug },
+        ],
+        isDeleted: false,
+      },
       include: {
         category: true,
         images: { orderBy: { sortOrder: 'asc' } },
@@ -48,25 +62,27 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         select: { rating: true },
       });
 
-      dbRelated = await prisma.product.findMany({
-        where: {
-          categoryId: dbProduct.categoryId,
-          id: { not: dbProduct.id },
-          isActive: true,
-        },
-        take: 4,
-        include: {
-          category: { select: { name: true } },
-          images: { orderBy: { sortOrder: 'asc' } },
-          variants: true,
-        },
-      });
+      if (dbProduct.categoryId) {
+        dbRelated = await prisma.product.findMany({
+          where: {
+            categoryId: dbProduct.categoryId,
+            id: { not: dbProduct.id },
+            isDeleted: false,
+          },
+          take: 4,
+          include: {
+            category: { select: { name: true } },
+            images: { orderBy: { sortOrder: 'asc' } },
+            variants: true,
+          },
+        });
+      }
     }
   } catch (error) {
-    console.warn('ProductDetailPage DB query warning:', error);
+    console.error('ProductDetailPage DB query error:', error);
   }
 
-  if (!dbProduct || !dbProduct.isActive || dbProduct.isDeleted) {
+  if (!dbProduct || dbProduct.isDeleted) {
     notFound();
   }
 
@@ -84,16 +100,23 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     totalStock: dbProduct.totalStock,
     isNewArrival: dbProduct.isNewArrival,
     isBestSeller: dbProduct.isBestSeller,
-    category: { name: dbProduct.category.name, slug: dbProduct.category.slug },
-    images: dbProduct.images.map((img: any) => ({ url: img.url, alt: img.alt || '', color: img.color })),
-    variants: dbProduct.variants.map((v: any) => ({
+    category: {
+      name: dbProduct.category?.name || 'Ethnic Wear',
+      slug: dbProduct.category?.slug || 'ethnic-wear',
+    },
+    images: (dbProduct.images || []).map((img: any) => ({
+      url: img.url,
+      alt: img.alt || '',
+      color: img.color,
+    })),
+    variants: (dbProduct.variants || []).map((v: any) => ({
       id: v.id,
       size: v.size,
       color: v.color,
       colorHex: v.colorHex || undefined,
       stock: v.stock,
     })),
-    _count: { reviews: dbProduct._count.reviews },
+    _count: { reviews: dbProduct._count?.reviews || 0 },
     avgRating,
   };
 
@@ -107,9 +130,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     totalStock: p.totalStock,
     isNewArrival: p.isNewArrival,
     isBestSeller: p.isBestSeller,
-    category: { name: p.category.name },
-    images: p.images.map((img: any) => ({ url: img.url, alt: img.alt || '' })),
-    variants: p.variants.map((v: any) => ({
+    category: { name: p.category?.name || 'Ethnic Wear' },
+    images: (p.images || []).map((img: any) => ({ url: img.url, alt: img.alt || '' })),
+    variants: (p.variants || []).map((v: any) => ({
       id: v.id,
       size: v.size,
       color: v.color,
@@ -121,4 +144,3 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   return <ProductDetailClient product={product} relatedProducts={relatedProducts} />;
 }
-

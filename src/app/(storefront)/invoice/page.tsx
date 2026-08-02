@@ -42,7 +42,7 @@ function InvoiceContent() {
       const ord = data.order;
       const formattedItems = (ord.items || []).map((item: any) => ({
         itemName: item.productName || item.product?.name || item.name || 'Women Apparel',
-        hsnSac: item.hsnCode || item.hsnSac || '6204',
+        hsnSac: '',
         quantity: item.quantity || 1,
         rate: Number(item.unitPrice || item.price || 0),
       }));

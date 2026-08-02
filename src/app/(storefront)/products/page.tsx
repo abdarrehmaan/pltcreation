@@ -26,14 +26,15 @@ export default async function ProductsPage({
   searchParams: Promise<{ sort?: string; search?: string; page?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const search = resolvedSearchParams.search;
+  const rawSearch = resolvedSearchParams.search || '';
+  const search = rawSearch.trim();
   const sort = resolvedSearchParams.sort || 'newest';
-  const page = Number(resolvedSearchParams.page) || 1;
+  const page = Math.max(1, Number(resolvedSearchParams.page) || 1);
   const pageSize = 8;
 
   const where: any = {
-    isActive: true,
     isDeleted: false,
+    isActive: true,
   };
 
   if (search) {
@@ -59,7 +60,19 @@ export default async function ProductsPage({
 
   try {
     totalProducts = await prisma.product.count({ where });
-    const skip = (page - 1) * pageSize;
+
+    // Fallback: If no products found with isActive: true, check if products exist without strict isActive
+    if (totalProducts === 0 && !search) {
+      const fallbackCount = await prisma.product.count({ where: { isDeleted: false } });
+      if (fallbackCount > 0) {
+        delete where.isActive;
+        totalProducts = fallbackCount;
+      }
+    }
+
+    const calculatedTotalPages = Math.ceil(totalProducts / pageSize) || 1;
+    const clampedPage = page > calculatedTotalPages ? 1 : page;
+    const skip = (clampedPage - 1) * pageSize;
 
     const dbProducts = await prisma.product.findMany({
       where,
@@ -83,7 +96,7 @@ export default async function ProductsPage({
       isNewArrival: p.isNewArrival,
       isBestSeller: p.isBestSeller,
       isTrending: p.isTrending,
-      category: { name: p.category.name },
+      category: { name: p.category?.name || 'Ethnic Wear' },
       images: p.images.map((img) => ({ url: img.url, alt: img.alt || '' })),
       variants: p.variants.map((v) => ({
         id: v.id,
@@ -95,7 +108,7 @@ export default async function ProductsPage({
       avgRating: 4.8,
     }));
   } catch (error) {
-    console.warn('ProductsPage DB query warning:', error);
+    console.error('ProductsPage DB query error:', error);
   }
 
   const totalPages = Math.ceil(totalProducts / pageSize) || 1;

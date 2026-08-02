@@ -6,21 +6,34 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const products = await prisma.product.findMany({
-      where: {
-        isDeleted: false,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      include: {
-        category: {
-          select: {
-            name: true,
+    let products: any[] = [];
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        products = await prisma.product.findMany({
+          where: {
+            isDeleted: false,
           },
-        },
-      },
-    });
+          orderBy: {
+            createdAt: 'desc',
+          },
+          include: {
+            category: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        });
+        break;
+      } catch (err: any) {
+        if (attempt < 3 && (err?.message?.includes('EMAXCONNSESSION') || err?.message?.includes('max clients') || err?.message?.includes('timeout'))) {
+          await new Promise((r) => setTimeout(r, 250 * attempt));
+        } else {
+          console.error('Failed to fetch admin products after retries:', err);
+          return NextResponse.json({ products: [] });
+        }
+      }
+    }
 
     const formattedProducts = products.map((p: any) => ({
       id: p.id,
@@ -39,7 +52,7 @@ export async function GET() {
     return NextResponse.json({ products: formattedProducts });
   } catch (error: any) {
     console.error('Failed to fetch admin products:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ products: [] });
   }
 }
 

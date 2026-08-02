@@ -7,28 +7,41 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const orders = await prisma.order.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-      include: {
-        items: {
+    let orders: any[] = [];
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        orders = await prisma.order.findMany({
+          orderBy: {
+            createdAt: 'desc',
+          },
           include: {
-            product: {
+            items: {
               include: {
-                images: true,
+                product: {
+                  include: {
+                    images: true,
+                  },
+                },
+              },
+            },
+            user: {
+              select: {
+                name: true,
+                email: true,
               },
             },
           },
-        },
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-      },
-    });
+        });
+        break;
+      } catch (err: any) {
+        if (attempt < 3 && (err?.message?.includes('EMAXCONNSESSION') || err?.message?.includes('max clients') || err?.message?.includes('timeout'))) {
+          await new Promise((r) => setTimeout(r, 250 * attempt));
+        } else {
+          console.error('Failed to fetch admin orders after retries:', err);
+          return NextResponse.json({ orders: [] });
+        }
+      }
+    }
 
     const formattedOrders = orders.map((o: any) => ({
       id: o.id,
@@ -58,7 +71,7 @@ export async function GET() {
     return NextResponse.json({ orders: formattedOrders });
   } catch (error: any) {
     console.error('Failed to fetch admin orders:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ orders: [] });
   }
 }
 

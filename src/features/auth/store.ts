@@ -4,6 +4,8 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { supabase } from '@/lib/supabase';
 
+import { useCartStore } from '@/features/cart/store';
+
 export interface User {
   id: string;
   name: string;
@@ -132,6 +134,13 @@ export const useAuthStore = create<AuthState>()(
           }
 
           if (data?.user) {
+            // Clear cart for newly created account so it starts fresh
+            try {
+              useCartStore.getState().clearCart();
+            } catch (cartErr) {
+              console.error('Failed to clear cart on register:', cartErr);
+            }
+
             // Sync profile and wallet in Prisma DB
             try {
               await fetch('/api/auth/register', {
