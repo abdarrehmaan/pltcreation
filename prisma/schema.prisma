@@ -519,7 +519,7 @@ model SiteSettings {
   id                    String  @id @default(cuid())
   prepaidDiscountPercent Decimal @default(5) @db.Decimal(5, 2)
   codAdvancePercent     Decimal @default(0) @db.Decimal(5, 2)
-  freeShippingThreshold Decimal @default(999) @db.Decimal(10, 2)
+  freeShippingThreshold Decimal @default(1499) @db.Decimal(10, 2)
   standardShippingCharge Decimal @default(99) @db.Decimal(10, 2)
   taxPercent            Decimal @default(0) @db.Decimal(5, 2)
   

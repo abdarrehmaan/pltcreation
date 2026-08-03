@@ -7,7 +7,7 @@ const DEFAULT_SETTINGS = {
   id: 'default_site_settings',
   prepaidDiscountPercent: 5.00,
   codAdvancePercent: 0.00,
-  freeShippingThreshold: 999.00,
+  freeShippingThreshold: 1499.00,
   standardShippingCharge: 99.00,
   taxPercent: 0.00,
 };

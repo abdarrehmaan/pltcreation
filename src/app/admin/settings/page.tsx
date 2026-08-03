@@ -8,7 +8,7 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState({
     prepaidDiscountPercent: 5,
     codAdvancePercent: 0,
-    freeShippingThreshold: 999,
+    freeShippingThreshold: 1499,
     standardShippingCharge: 99,
     taxPercent: 0,
   });
@@ -176,7 +176,7 @@ export default function AdminSettingsPage() {
                 value={settings.freeShippingThreshold}
                 onChange={handleChange}
                 className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-300 bg-white text-gray-900 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all shadow-sm"
-                placeholder="e.g. 999"
+                placeholder="e.g. 1499"
                 required
               />
             </div>

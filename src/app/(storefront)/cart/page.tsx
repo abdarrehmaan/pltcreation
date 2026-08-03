@@ -103,7 +103,7 @@ export default function CartPage() {
                   </span>
                 </div>
                 {shipping > 0 && (
-                  <p className="text-xs text-gray-400">Add {formatPrice(999 - subtotal)} more for free shipping</p>
+                  <p className="text-xs text-gray-400">Add {formatPrice(1499 - subtotal)} more for free shipping</p>
                 )}
                 <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-gray-900 text-base">
                   <span>Total</span>

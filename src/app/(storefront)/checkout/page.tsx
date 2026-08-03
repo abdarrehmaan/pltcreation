@@ -34,7 +34,7 @@ export default function CheckoutPage() {
   const [siteSettings, setSiteSettings] = useState({
     prepaidDiscountPercent: 5,
     codAdvancePercent: 0,
-    freeShippingThreshold: 999,
+    freeShippingThreshold: 1499,
     standardShippingCharge: 99,
     taxPercent: 0,
   });
@@ -76,7 +76,7 @@ export default function CheckoutPage() {
   }, [user]);
 
   // Dynamic Calculations using Admin Site Settings
-  const freeThreshold = Number(siteSettings.freeShippingThreshold || 999);
+  const freeThreshold = Number(siteSettings.freeShippingThreshold || 1499);
   const standardShipping = Number(siteSettings.standardShippingCharge || 99);
   const prepaidPercent = Number(siteSettings.prepaidDiscountPercent || 0);
   const codAdvancePercent = Number(siteSettings.codAdvancePercent || 0);

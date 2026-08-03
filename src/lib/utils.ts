@@ -62,7 +62,7 @@ export function getStockStatus(stock: number): { label: string; color: string } 
   return { label: 'In Stock', color: 'text-emerald-600' };
 }
 
-export function calculateShipping(subtotal: number, freeThreshold = 999, standardCharge = 99): number {
+export function calculateShipping(subtotal: number, freeThreshold = 1499, standardCharge = 99): number {
   return subtotal >= freeThreshold ? 0 : standardCharge;
 }
 
