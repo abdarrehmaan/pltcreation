@@ -9,8 +9,28 @@ import { formatPrice, calculateDiscount } from '@/lib/utils';
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, getSubtotal } = useCartStore();
+  const [siteSettings, setSiteSettings] = React.useState({
+    freeShippingThreshold: 1499,
+  });
+
+  React.useEffect(() => {
+    const fetchSiteSettings = async () => {
+      try {
+        const res = await fetch('/api/admin/settings');
+        const data = await res.json();
+        if (res.ok && data.settings) {
+          setSiteSettings(data.settings);
+        }
+      } catch (err) {
+        console.error('Failed to fetch cart drawer site settings:', err);
+      }
+    };
+
+    fetchSiteSettings();
+  }, []);
+
   const subtotal = getSubtotal();
-  const freeShippingThreshold = 1499;
+  const freeShippingThreshold = Number(siteSettings.freeShippingThreshold || 1499);
   const remaining = freeShippingThreshold - subtotal;
 
   if (!isOpen) return null;

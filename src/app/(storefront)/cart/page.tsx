@@ -11,8 +11,31 @@ import toast from 'react-hot-toast';
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getSubtotal } = useCartStore();
 
+  const [siteSettings, setSiteSettings] = useState({
+    freeShippingThreshold: 1499,
+    standardShippingCharge: 99,
+  });
+
+  React.useEffect(() => {
+    const fetchSiteSettings = async () => {
+      try {
+        const res = await fetch('/api/admin/settings');
+        const data = await res.json();
+        if (res.ok && data.settings) {
+          setSiteSettings(data.settings);
+        }
+      } catch (err) {
+        console.error('Failed to fetch cart site settings:', err);
+      }
+    };
+
+    fetchSiteSettings();
+  }, []);
+
   const subtotal = getSubtotal();
-  const shipping = calculateShipping(subtotal);
+  const freeThreshold = Number(siteSettings.freeShippingThreshold || 1499);
+  const standardShipping = Number(siteSettings.standardShippingCharge || 99);
+  const shipping = subtotal >= freeThreshold ? 0 : standardShipping;
   const total = subtotal + shipping;
 
   if (items.length === 0) {
@@ -97,13 +120,13 @@ export default function CartPage() {
                   <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span className="flex items-center gap-1"><Truck size={13} /> Shipping</span>
+                  <span className="flex items-center gap-1"><Truck size={13} /> Delivery Charges</span>
                   <span className={shipping === 0 ? 'text-emerald-600 font-semibold' : ''}>
                     {shipping === 0 ? 'FREE' : formatPrice(shipping)}
                   </span>
                 </div>
                 {shipping > 0 && (
-                  <p className="text-xs text-gray-400">Add {formatPrice(1499 - subtotal)} more for free shipping</p>
+                  <p className="text-xs text-gray-400">Standard charge {formatPrice(standardShipping)}. Add {formatPrice(freeThreshold - subtotal)} more for FREE shipping!</p>
                 )}
                 <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-gray-900 text-base">
                   <span>Total</span>
