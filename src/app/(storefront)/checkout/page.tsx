@@ -42,6 +42,9 @@ export default function CheckoutPage() {
   const user = useAuthStore((s) => s.user);
   const [paymentMethod, setPaymentMethod] = useState('upi');
   const [loading, setLoading] = useState(false);
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>('');
+
   const [form, setForm] = useState({
     fullName: '', phone: '', email: '', line1: '', line2: '',
     city: '', state: '', pincode: '',
@@ -64,7 +67,35 @@ export default function CheckoutPage() {
     fetchSiteSettings();
   }, []);
 
+  // Fetch user's saved addresses and auto-fill default address
   useEffect(() => {
+    const fetchSavedAddresses = async () => {
+      if (!user?.id) return;
+      try {
+        const res = await fetch(`/api/account/addresses?userId=${user.id}`);
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.addresses) && data.addresses.length > 0) {
+          setSavedAddresses(data.addresses);
+          const defaultAddr = data.addresses.find((a: any) => a.isDefault) || data.addresses[0];
+          if (defaultAddr) {
+            setSelectedAddressId(defaultAddr.id);
+            setForm({
+              fullName: defaultAddr.fullName || user.name || '',
+              phone: defaultAddr.phone || user.phone || '',
+              email: user.email || '',
+              line1: defaultAddr.line1 || '',
+              line2: defaultAddr.line2 || '',
+              city: defaultAddr.city || '',
+              state: defaultAddr.state || '',
+              pincode: defaultAddr.pincode || '',
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch user saved addresses:', err);
+      }
+    };
+
     if (user) {
       setForm((prev) => ({
         ...prev,
@@ -72,8 +103,23 @@ export default function CheckoutPage() {
         email: prev.email || user.email || '',
         phone: prev.phone || user.phone || '',
       }));
+      fetchSavedAddresses();
     }
   }, [user]);
+
+  const handleSelectAddress = (addr: any) => {
+    setSelectedAddressId(addr.id);
+    setForm({
+      fullName: addr.fullName || user?.name || '',
+      phone: addr.phone || user?.phone || '',
+      email: user?.email || form.email || '',
+      line1: addr.line1 || '',
+      line2: addr.line2 || '',
+      city: addr.city || '',
+      state: addr.state || '',
+      pincode: addr.pincode || '',
+    });
+  };
 
   // Dynamic Calculations using Admin Site Settings
   const freeThreshold = Number(siteSettings.freeShippingThreshold || 1499);
@@ -361,6 +407,34 @@ export default function CheckoutPage() {
               {/* Shipping address */}
               <div className="bg-white rounded-2xl p-6 shadow-card">
                 <h2 className="font-semibold text-gray-900 mb-5 text-lg">Shipping Address</h2>
+
+                {savedAddresses.length > 0 && (
+                  <div className="mb-6 space-y-2">
+                    <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">Saved Addresses</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {savedAddresses.map((addr) => (
+                        <div
+                          key={addr.id}
+                          onClick={() => handleSelectAddress(addr)}
+                          className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                            selectedAddressId === addr.id
+                              ? 'border-brand-600 bg-brand-50/50 shadow-xs'
+                              : 'border-gray-200 hover:border-gray-300 bg-white'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-semibold text-xs text-gray-900">{addr.fullName}</span>
+                            {addr.isDefault && (
+                              <span className="text-[10px] font-bold text-brand-700 bg-brand-100 px-2 py-0.5 rounded-full">Default</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-600 line-clamp-2">{addr.line1}{addr.line2 ? `, ${addr.line2}` : ''}</p>
+                          <p className="text-xs text-gray-500 mt-1">{addr.city}, {addr.state} - {addr.pincode}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Full Name *</label>

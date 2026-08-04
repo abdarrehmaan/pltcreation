@@ -14,6 +14,8 @@ export default function CartPage() {
   const [siteSettings, setSiteSettings] = useState({
     freeShippingThreshold: 1499,
     standardShippingCharge: 99,
+    prepaidDiscountPercent: 5,
+    taxPercent: 0,
   });
 
   React.useEffect(() => {
@@ -35,8 +37,16 @@ export default function CartPage() {
   const subtotal = getSubtotal();
   const freeThreshold = Number(siteSettings.freeShippingThreshold || 1499);
   const standardShipping = Number(siteSettings.standardShippingCharge || 99);
+  const prepaidPercent = Number(siteSettings.prepaidDiscountPercent || 5);
+  const taxPercent = Number(siteSettings.taxPercent || 0);
+
   const shipping = subtotal >= freeThreshold ? 0 : standardShipping;
-  const total = subtotal + shipping;
+  const prepaidDiscount = prepaidPercent > 0 ? Math.round(subtotal * (prepaidPercent / 100)) : 0;
+  const finalTotal = Math.max(0, subtotal - prepaidDiscount + shipping);
+
+  const activeTaxPercent = taxPercent > 0 ? taxPercent : 5;
+  const gstAmount = Math.round((subtotal - prepaidDiscount) * (activeTaxPercent / (100 + activeTaxPercent)));
+  const remainingForFree = freeThreshold - subtotal;
 
   if (items.length === 0) {
     return (
@@ -123,24 +133,37 @@ export default function CartPage() {
             <div className="bg-white rounded-2xl p-5 shadow-card">
               <h3 className="font-semibold text-gray-900 mb-4">Order Summary</h3>
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between text-gray-600">
-                  <span>Subtotal ({items.reduce((s,i) => s+i.quantity,0)} items)</span>
+                <div className="flex justify-between font-medium text-gray-900">
+                  <span>Product Subtotal</span>
                   <span>{formatPrice(subtotal)}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>Includes {activeTaxPercent}% GST</span>
+                  <span>{formatPrice(gstAmount)}</span>
+                </div>
+                {prepaidDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-600 font-medium">
+                    <span>Prepaid Discount ({prepaidPercent}%)</span>
+                    <span>-{formatPrice(prepaidDiscount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-medium text-gray-900">
                   <span className="flex items-center gap-1"><Truck size={13} /> Delivery Charges</span>
-                  <span className={shipping === 0 ? 'text-emerald-600 font-semibold' : ''}>
+                  <span className={shipping === 0 ? 'text-emerald-600 font-bold' : ''}>
                     {shipping === 0 ? 'FREE' : formatPrice(shipping)}
                   </span>
                 </div>
-                {shipping > 0 && (
-                  <p className="text-xs text-gray-400">Standard charge {formatPrice(standardShipping)}. Add {formatPrice(freeThreshold - subtotal)} more for FREE shipping!</p>
+                {shipping > 0 ? (
+                  <p className="text-xs text-amber-700 font-medium">
+                    Standard charge {formatPrice(standardShipping)}. Add {formatPrice(remainingForFree)} more for FREE shipping!
+                  </p>
+                ) : (
+                  <p className="text-xs text-emerald-700 font-semibold">🎉 You qualify for FREE shipping!</p>
                 )}
                 <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-gray-900 text-base">
-                  <span>Total</span>
-                  <span>{formatPrice(total)}</span>
+                  <span>Final Payable Amount</span>
+                  <span className="text-brand-700">{formatPrice(finalTotal)}</span>
                 </div>
-                <p className="text-xs text-gray-400 text-center">Inclusive of all taxes</p>
               </div>
 
               <Link
