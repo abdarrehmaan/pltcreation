@@ -82,9 +82,17 @@ export default function CartPage() {
                     {item.product.name}
                   </Link>
                   {item.variant && (
-                    <div className="flex gap-3 mb-2">
-                      <span className="text-xs text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">{item.variant.size}</span>
-                      <span className="text-xs text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">{item.variant.color}</span>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {item.variant.size && (
+                        <span className="text-xs font-semibold text-gray-900 bg-gray-100 border border-gray-300 rounded-full px-2.5 py-0.5">
+                          Size: {item.variant.size}
+                        </span>
+                      )}
+                      {item.variant.color && (
+                        <span className="text-xs font-semibold text-gray-900 bg-gray-100 border border-gray-300 rounded-full px-2.5 py-0.5">
+                          Color: {item.variant.color}
+                        </span>
+                      )}
                     </div>
                   )}
                   <div className="flex items-center justify-between">

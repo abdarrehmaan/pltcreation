@@ -190,16 +190,16 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
         <div className="space-y-6">
           <div className="bg-white rounded-2xl shadow-card p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Customer Info</h3>
-            <div className="space-y-3 text-sm">
-              <p><span className="text-gray-500 block text-xs">Name</span> {order.customer.name}</p>
-              <p><span className="text-gray-500 block text-xs">Email</span> {order.customer.email}</p>
-              <p><span className="text-gray-500 block text-xs">Phone</span> {order.customer.phone}</p>
+            <div className="space-y-3 text-sm text-gray-900 font-medium">
+              <p><span className="text-gray-500 font-normal block text-xs">Name</span> {order.customer.name}</p>
+              <p><span className="text-gray-500 font-normal block text-xs">Email</span> {order.customer.email}</p>
+              <p><span className="text-gray-500 font-normal block text-xs">Phone</span> {order.customer.phone}</p>
             </div>
           </div>
 
           <div className="bg-white rounded-2xl shadow-card p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Shipping Address</h3>
-            <div className="text-sm text-gray-700 space-y-1">
+            <div className="text-sm text-gray-900 font-medium space-y-1">
               <p>{order.shippingAddress.line1}</p>
               {order.shippingAddress.line2 && <p>{order.shippingAddress.line2}</p>}
               <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.pincode}</p>
@@ -208,10 +208,10 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
           
           <div className="bg-white rounded-2xl shadow-card p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b pb-2">Payment Info</h3>
-            <div className="text-sm text-gray-700 space-y-2">
+            <div className="text-sm text-gray-900 space-y-2">
               <div className="flex justify-between">
                 <span>Method</span>
-                <span className="font-medium">{order.paymentMethod}</span>
+                <span className="font-medium text-gray-900">{order.paymentMethod}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Status</span>

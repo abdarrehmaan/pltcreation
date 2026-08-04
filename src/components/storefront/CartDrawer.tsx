@@ -145,8 +145,8 @@ export default function CartDrawer() {
 
                       {item.variant && (
                         <div className="flex gap-3 mt-1">
-                          <span className="text-xs text-gray-500">Size: {item.variant.size}</span>
-                          <span className="text-xs text-gray-500">Color: {item.variant.color}</span>
+                          <span className="text-xs text-gray-900 font-medium">Size: {item.variant.size}</span>
+                          <span className="text-xs text-gray-900 font-medium">Color: {item.variant.color}</span>
                         </div>
                       )}
 
