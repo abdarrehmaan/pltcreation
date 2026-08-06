@@ -130,23 +130,24 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-white/5 bg-black">
-        <div className="container-plt py-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex gap-6 text-xs font-medium uppercase tracking-widest order-2 md:order-1">
-            <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-          </div>
-          <p className="text-xs text-gray-500 text-center md:text-left order-3 md:order-2">
+        <div className="container-plt py-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+          <p className="text-gray-500 text-center md:text-left">
             © {new Date().getFullYear()} PLT CREATION. ALL RIGHTS RESERVED.
           </p>
-          <div className="flex items-center gap-3 order-1 md:order-3">
-            {['VISA', 'MASTERCARD', 'AMEX', 'UPI'].map((brand) => (
-              <span
-                key={brand}
-                className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border border-white/10 text-gray-400 bg-white/5"
-              >
-                {brand}
-              </span>
-            ))}
+          <p className="text-gray-500 text-center">
+            Built by{" "}
+            <a
+              href="https://abdurrahmanmaqsood.in"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white underline transition-colors"
+            >
+              abdarrehmaan
+            </a>
+          </p>
+          <div className="flex gap-6 font-medium uppercase tracking-widest text-gray-400">
+            <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
           </div>
         </div>
       </div>
